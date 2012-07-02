@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+# Manually defining the interface and passing it to getRemoteObject()
+# prevents the need for DBus object introspection. The primary
+# advantage of this is that the proxy object can be successfully
+# created even if the remote object does not actually exist. As signal
+# registration is a function of the bus itself and not of the actual
+# object, this script may be run prior launching signal_server.
+#
+
+from twisted.internet import reactor
+
+from tx.dbus import client
+
+from tx.dbus.interface import DBusInterface, Signal
+
+iface = DBusInterface( 'org.example.SignalSender',
+                       Signal('tick', 'u')
+                       )
+            
+def onSignal( tickCount ):
+    print 'Got tick signal: ', tickCount
+
+def onErr(err):
+    print 'Error: ', err.getErrorMessage()
+
+
+
+d = client.connect(reactor)
+
+d.addCallback( lambda cli: cli.getRemoteObject( 'org.example',
+                                                '/Signaller',
+                                                iface) )
+d.addCallback( lambda ro: ro.notifyOnSignal( 'tick', onSignal ) ) 
+d.addErrback( onErr )
+
+reactor.run()

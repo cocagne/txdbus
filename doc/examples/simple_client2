@@ -1,0 +1,24 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client
+
+def onReply( rep ):
+    print 'Remote method call result: ', rep
+                
+def onFailed(err):
+    print 'Failed: ', err.getErrorMessage()
+
+
+dc = client.connect(reactor)
+
+dc.addCallback(lambda cli: cli.getRemoteObject( 'org.example',
+                                                '/MyObjPath' ))
+
+dc.addCallback(lambda ro: ro.callRemote('exampleMethod',
+                                        "Hello World!"))
+dc.addCallbacks(onReply, onFailed)
+dc.addBoth( lambda _: reactor.stop() )
+
+reactor.run()

@@ -1,0 +1,5 @@
+
+include setup.py
+include tx
+global-exclude _trial_temp
+graft doc

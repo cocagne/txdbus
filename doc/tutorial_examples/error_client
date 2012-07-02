@@ -1,0 +1,33 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/ErrorObject' )
+
+        try:
+            yield robj.callRemote('throwError')
+
+            print 'Not Reached'
+
+        except error.RemoteError, e:
+            print 'Client threw an error named: ', e.errName
+            print 'Error message: ', e.message
+
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()

@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client, objects
+from tx.dbus.interface import DBusInterface, Method, Signal
+
+
+class MyObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.MyIFace',
+                          Method('exampleMethod', arguments='(si)', returns='s' ))
+
+    dbusInterfaces = [iface]
+
+    def __init__(self, objectPath):
+        objects.DBusObject.__init__(self, objectPath)
+
+
+    def dbus_exampleMethod(self, arg):
+    	print 'Received remote call. Argument: ', arg
+        return 'You sent (%s,%d)' % (arg[0], arg[1])
+        
+    
+def onConnected(conn):
+    conn.exportObject( MyObj('/MyObjPath') )
+    return conn.requestBusName('org.example')
+
+
+def onReady(ignore):
+    print 'Exporting object /MyObjPath on bus name "org.exmaple"'
+
+    
+def onErr(err):
+    print 'Failed to export object: ', err.getErrorMessage()
+
+
+d = client.connect(reactor)
+
+d.addCallback(onConnected)
+d.addCallback(onReady)
+d.addErrback(onErr)
+
+reactor.run()
+

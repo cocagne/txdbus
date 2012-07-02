@@ -1,0 +1,38 @@
+#!/usr/bin/python
+from twisted.internet import reactor
+from tx.dbus import client
+from tx.dbus.interface import DBusInterface, Method
+
+iface = DBusInterface( 'org.freedesktop.DBus.Peer',
+                       Method('Ping')
+                       )
+
+def onConnected(cli):
+    d = cli.getRemoteObject( 'org.example', '/MyObjPath', iface )
+    
+    def gotObject( ro ):
+        
+        def onReply( rep ):
+            print 'Ping Success'
+            
+        dp = ro.callRemote('Ping')
+            
+        dp.addCallback( onReply )
+        
+        return dp
+        
+    d.addCallbacks( gotObject )
+
+    return d
+
+
+def onFailed(err):
+    print 'Failed: ', err.getErrorMessage()
+    
+dc = client.connect(reactor)
+
+dc.addCallbacks(onConnected)
+dc.addErrback(onFailed)
+dc.addBoth( lambda _: reactor.stop() )
+
+reactor.run()

@@ -1,0 +1,999 @@
+Twisted DBus Tutorial
+=====================
+Tom Cocagne <tom.cocagne@gmail.com>
+v1.0, July 2012
+
+Introduction
+------------
+
+Twisted DBus is a native-python implementation of the DBus protocol on
+top of the Twisted networking engine. The purpose of this tutorial is to
+provide an introduction to the use of Twisted DBus and demonstrate
+the main APIs necessary to successfully incorproate it within Twisted
+applications. This tutorial assumes a basic understanding of both Twisted
+and DBus. 
+
+
+Inline Callbacks
+~~~~~~~~~~~~~~~~
+
+This tutorial leverages the +defer.inlineCallbacks+ function decorator in
+an attempt to improve readability of the example code. As inline callbacks
+are not well described in the Twisted documentation, this section provides
+a quick overview of the feature.
+
+Inline callbacks is an alternative callback mechanism that may be used in
+Twisted applications running on Python 2.5+. They assist in writing
+Deferred-using code that looks similar to a regular, sequential
+function. Through the magic of Python's generator mechanism, this
+sequential-looking code is, in fact, fully asynchronous and functionally
+equivalent to the traditional Deferred plus explicit callbacks and errbacks
+mechanism. Although the inline callbacks mechanism is not quite as flexible as
+explicit callbacks and errbacks, it often results in simpler and more compact
+code.
+
+Aside from the use of the +defer.inlineCallbacks+ function decorator, the key
+to inline callbacks is to +yield+ all deferreds. This will pause the generator
+function at the point of the +yield+ until the asynchronous operation
+completes. On completion, the generator will be resumed and the result of the
+operator will be returned from the +yield+ statement. Alternatively, if the
+operation resulted in an exception, the exception will be re-thrown from the
++yield+ statement.
+
+The return value of functions decorated with +defer.inlineCallbacks+ is a
+deferred. Due to the nature of generator functions, inline callbacks methods
+cannot use the traditional +return+ keyword to return the result of the 
+asynchronous operation. Instead, they must use +defer.returnValue()+ to
+return the result. If +defer.returnValue()+ is not used, the deferred 
+returned by the decorated function will result in +None+
+
+.Inline Callbacks Example
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import defer, utils
+
+@defer.inlineCallbacks
+def checkIPUsage( ip_addr ):
+    ip_txt = yield utils.getProcessOutput('/sbin/ip', ['addr', 'list'])
+
+    if ip_addr in ip_txt:
+        # True will become the result of the Deferred
+        defer.returnValue( True )
+    else:
+        # Will trigger an errback
+        raise Exception('IP NOT FOUND')
+----------------------------------------------------------------------
+
+Quick Real-World Example for the Impatient
+------------------------------------------
+
+The following example displays a notification popup on the desktop via the
+the +org.freedesktop.Notifications+ DBus API
+
+[source,python]
+----------------------------------------------------------------------
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+from tx.dbus import error, client
+
+
+def delay(t):
+    d = defer.Deferred()
+    reactor.callLater(t, lambda : d.callback(None) )
+    return d
+
+
+@defer.inlineCallbacks
+def show_desktop_notification( duration, message ):
+    '''
+    Shows the message as a desktop nofification for the specified
+    number of seconds
+    '''
+    con = yield client.connect(reactor, 'session')
+
+    notifier = yield con.getRemoteObject('org.freedesktop.Notifications',
+                                         '/org/freedesktop/Notifications')
+
+    nid = yield notifier.callRemote('Notify',
+                                    'Example Application', 0,
+                                    '',
+                                    'Example Notification Summary',
+                                    message,
+                                    [], dict(),
+                                    10)
+    
+    yield delay(3)
+
+    yield notifier.callRemote('CloseNotification', nid)
+
+
+def main():
+    d = show_desktop_notification( 5, "Hello World!" )
+    
+    d.addCallback( lambda _: reactor.stop() )
+
+
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+DBus Connections
+----------------
+
+In order to make any use of DBus, a connection to the bus must first be
+established. This is accomplished through the +tx.dbus.client.connect(reactor,
+busAddress="session")+ method which returns a Deferred to a
++tx.dbus.client.DBusClientConnection+ instance. The +busAddress+ parameter
+supports two special-case addresses in addition to the standard server
+addresses as defined by the DBus specification. If 'session' (the default) or
+'system' is passed, the client will attempt to connect to the local session or
+system busses, respectively. For typical usage, these special-case addresses
+will likely suffice.
+
+Twisted DBus currently supports the +unix+, +tcp+, and +nonce-tcp+ connection 
+types.
+
+.Bus Connection
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor
+from tx.dbus import client
+
+def onConnected(cli):
+    print 'Connected to the session bus!'
+            
+dconnect = client.connect(reactor)
+
+dconnect.addCallback(onConnected)
+
+reactor.run()
+----------------------------------------------------------------------
+
+
+DBus Clients
+------------
+
+Twisted DBus provides two APIs for interacting with remote objects. The
+generally preferred and significantly easier to use mechanism involves creating
+local proxies to represent remote objects. Signal registration and remote
+method invocation is then done by way of the proxy instances which hide
+most of the low-level details. Alternatively, low-level APIs exist for
+direct remote method invocation and message matching registration. Although
+generally much less convenient, the low-level APIs provide full access to the
+DBus internals.
+
+As with most dynamic language bindings, Twisted DBus will automatically use the
+DBus introspection mechanism to obtain interface definitions for remote objects
+if they are not explicitly provided. While introspection is certainly a
+convenient mechanism and appropriate for many use cases, there are some
+advantages to explicitly specifying the interfaces. The primary benefit is that
+it allows for signal registration and local proxy object creation irrespective
+of whether or not the target bus name is currently in use.
+
+[[remote_methods]]
+Remote Methods
+~~~~~~~~~~~~~~
+
+As there is a delay involved in remote method invocation, remote calls always
+result in a Deferred instance. When the results eventually become available,
+the deferred will be callbacked/errbacked with the returned value. The format
+of the return value depends on the interface specification for the remote
+method.
+
+If the interface does not specify any return values, the return value will be
++None+. If only one value is returned (structures and arrays are considered
+single values), that value will be returned as the result. Otherwise, if
+multiple values are returned, the result will be a Python list containing the
+returned values in the order specified by the DBus signature.
+
+There are two mechanisms for invoking remote methods. The easier of the two
+is to invoke the remote method through a local proxy object. This has the 
+advantage of hiding many of the low-level DBus details and provides a simpler
+interface. Alternatively, the methods may be invoked directly without the use
+of proxy objects. In this case, however, all required parameters for the
+method invocation must be specified manually. 
+
+Both mechanisms use a function called +callRemote()+ to effect the remote
+method invocation. The low-level +callRemote()+ is provided by the
++tx.dbus.client.DBusClientConnection+ class and requires a large number of
+arguments.  The proxy object's +callRemote()+ method wraps the low-level method
+and hides most of the details. In addition to accepting the name of the method
+to invoke and a list of positional arguments, both interfaces also accept the
+following optional keyword arguments that may be used to augment the remote
+method invocation.
+
+.callRemote() Optional Keyword Arguments
+[width="90%",cols="1m,10",options="header"]
+|========================================================
+|Keyword |Description
+
+|expectReply | 
+By default, the returned Deferred will callback/errback when
+the result of the remote invocation becomes available. If this parameter
+is set to +True+ (defaults to +False+), defer.suceed(None) will be returned
+immediately and no DBus MethodReturn message will be sent over the bus in 
+response to the invocation.
+
+|autoStart |
+If set to +True+ (the default), the DBus daemon will attempt to auto-start a
+service to handle the remote call if the service is not already running. 
+
+|timeout |
+If specified, the returned Deferred will be errbacked with a +tx.dbus.error.TimeOut+
+instance if the remote call does not return before the timeout elapses (defaults to
+infinity).
+
+|interface |
+If specified, the remote call will invoke the method on the named interface. If left
+unspecified and more than one interface provides a method with the same name it is
+"implementation" defined as to which will be invoked.
+|========================================================
+
+
+
+Proxy Objects
+~~~~~~~~~~~~~
+
+Remote DBus objects are generally interacted with by way of local proxy objects.
+The following example demonstrates the creation of a proxy object and a remote
+method invocation.
+
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli  = yield client.connect(reactor)
+
+        robj = yield cli.getRemoteObject( 'org.example', '/MyObjPath' )
+
+        yield robj.callRemote('Ping')
+
+        print 'Ping Succeeded. org.example is available'
+        
+    except error.DBusException, e:
+        print 'Ping Failed. org.example is not available'
+
+    reactor.stop()
+
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+The local proxy object uses the remote object's interface definition to provide
+a local representation of the remote object's API. As no explicit interface
+description was provided in the +getRemoteObject()+ call, the interfaces must be
+introspected prior to creation of the local proxy object. 
+
+Remote method invocation on proxy objects is done through their +callRemote()+
+method. The first argument is the name of the method to be invoked and the
+subsequent positional arguments are the arguments to be passed to the remote
+method. The optional keyword arguments described in the <<remote_methods,
+Remote Methods>> section may be used to augment the call as desired.
+
+
+Low Level Method Invocation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to method invocation through proxy objects, the
++tx.dbus.client.DBusClientConnection+ class provides a low-level +callRemote()+
+function that may be used to directly invoke remote methods. However, all
+parameters typically hidden by the proxy objects such as signature strings,
+destination bus addresses, and the like must be explicitly specified. As with
+the proxy object's +callRemote()+, this method also accepts the optional
+keyword arguments listed in the <<remote_methods, Remote Methods>> section.
+
+The following example is equivalent to the previous one but uses the low-level
+API to invoke the +Ping+ method without the use of a proxy object.
+
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli = yield client.connect(reactor)
+
+        yield cli.callRemote( '/AnyValidObjPath', 'Ping',
+                              interface   = 'org.freedesktop.DBus.Peer',
+                              destination = 'org.example' )
+
+        print 'Ping Succeeded. org.example is available'
+        
+    except error.DBusException, e:
+        print 'Ping Failed. org.example is not available'
+
+    reactor.stop()
+
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+NOTE: The +Ping+ function is used here because it's a standard interface that's
+guaranteed to exist. However, it's worth mentioning that +Ping+ is handled
+specially and can be somewhat misleading. Although it would appear the remote
+object referred to by the object path is the target of the +Ping+ function, it
+is in fact just the bus name that is being pinged. The object path is
+ignored. Consequently, this function cannot be used to test for the
+availability of a specific object.
+
+
+Explicit Interface Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example extends the previous two by demonstrating explicit
+interface specification for a remote object. 
+
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, error
+from tx.dbus.interface import DBusInterface, Method
+
+peer_iface = DBusInterface( 'org.freedesktop.DBus.Peer',
+                            Method('Ping')
+                          )
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli  = yield client.connect(reactor)
+
+        robj = yield cli.getRemoteObject( 'org.example', '/MyObjPath', peer_iface )
+
+        yield robj.callRemote('Ping')
+
+        print 'Ping Succeeded. org.example is available'
+        
+    except error.DBusException, e:
+        print 'Ping Failed. org.example is not available'
+
+    reactor.stop()
+
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+Of course, the +org.freedesktop.DBus.Peer+ interface is rather simplistic. To
+better demonstrate DBus interface definition, consider the following code
+
+[source,python]
+----------------------------------------------------------------------
+from tx.dbus.interface import DBusInterface, Method, Signal
+
+# Method( method_name, arguments='', returns='')
+# Signal( signal_name, arguments='' )
+#
+# The arguments and returns parameters must be empty strings for
+# no arguments/return values or a valid DBus signature string
+#
+iface = DBusInterface( 'org.example',
+                       Method('simple'), 
+                       Method('full', 's', 'i'),
+                       Method('retOnly', returns='s'),
+                       Method('argOnly', 's'),
+                       Signal('noDataSignal'),
+                       Signal('DataSignal', 'as') )
+----------------------------------------------------------------------
+
+
+Exporting Objects Over DBus
+---------------------------                           
+
+In order to export an object over DBus, it must support the
++tx.dbus.objects.IDBusObject+ interface. While this interface may be directly
+supported by applications, it will typically be easier to derive from the
+default implementation provided by the +tx.dbus.objects.DBusObject+ class. The
+easiest way to explain its use is by way of example. The following code
+demonstrates a simple object exported over DBus.
+
+.Example Exported Object
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Method
+
+
+class MyObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.MyIFace',
+                          Method('exampleMethod', arguments='s', returns='s' ))
+
+    dbusInterfaces = [iface]
+    
+    def __init__(self, objectPath):
+        super(MyObj, self).__init__(objectPath)
+
+        
+    def dbus_exampleMethod(self, arg):
+    	print 'Received remote call. Argument: ', arg
+        return 'You sent (%s)' % arg
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( MyObj('/MyObjPath') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /MyObjPath'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+----------------------------------------------------------------------
+
+This example demonstrates several key issues for subclasses of +DBusObject+.
+The DBus interfaces supported by an object are declared by way of a class-level
+variable named +dbusInterfaces+. This variable contains a list of
++DBusInterface+ instances which define an interface's API. When class
+inheritance is used, the +dbusInterfaces+ variables of all superclasses are
+conjoined to determine the full set of APIs supported by the object.
+
+Supporting the methods declared in the DBus interfaces is as simple as creating
+methods named +dbus_<DBusMethodName>+. These methods may return Deferreds to
+the final results if those results are not immediately available.
+
+The following code demonstrates the use of the exported object.
+
+.Use of the Exported Object
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/MyObjPath' )
+
+        reply = yield robj.callRemote('exampleMethod', 'Hello World!')
+
+        print 'Reply from server: ', reply
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+DBus Properties
+~~~~~~~~~~~~~~~
+
+Twisted DBus supports DBus Properties through the 
++tx.dbus.objects.DBusProperty+ class. This class leverages Python's
+descriptor capabilities to provide near-transparent support for
+DBus Properties.
+
+If the +Property+ in the +DBusInterface+ class set +emitsOnChanged+ to
++True+, an +org.freedesktop.DBus.Properties.PropertiesChanged+ signal
+will be generated each time the value is assigned to (defaults to True).
+
+.Server Properties Example
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Property
+from tx.dbus.objects   import DBusProperty
+
+
+class MyObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.MyIFace',
+                          Property('foo', 's', writeable=True))
+
+    dbusInterfaces = [iface]
+
+    foo = DBusProperty('foo')
+    
+    def __init__(self, objectPath):
+        super(MyObj, self).__init__(objectPath)
+
+        self.foo = 'bar'
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( MyObj('/MyObjPath') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /MyObjPath'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+----------------------------------------------------------------------
+
+Client-side property use:
+
+.Client-side Properties Example
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/MyObjPath' )
+
+        # Use the standard org.freedesktop.DBus.Properties.Get function to
+        # obtain the value of 'foo'. Only one interface on the remote object
+        # declares 'foo' so the interface name (the second function argument)
+        # may be omitted.
+        foo   = yield robj.callRemote('Get', '', 'foo')
+
+        # prints "bar"
+        print foo
+
+        yield robj.callRemote('Set', '', 'foo', 'baz')
+
+        foo   = yield robj.callRemote('Get', '', 'foo')
+
+        # prints "baz"
+        print foo
+        
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+
+Caller Identity
+~~~~~~~~~~~~~~~
+
+The identity of the calling DBus connection can be reliably determined
+in DBus. Methods wishing to know the identity of the connection invoking
+them may add a +dbusCaller=None+ key-word argument. Methods supporting
+this argument will be supplied with the unique bus name of the calling
+connection. 
+
+[source,python]
+----------------------------------------------------------------------
+    def dbus_identityExample(dbusCaller=None):
+        print 'Calling connection: ', dbusCaller
+----------------------------------------------------------------------
+
+Although the unique bus name of the caller is often not very useful
+in and of itself it can be reliably converted into a Unix user id
+with the +getConnectionUnixUser()+ method of 
++tx.dbus.client.DBusClientConnection+:
+
+.Determining Unix User Id of the caller
+[source,python]
+----------------------------------------------------------------------
+    def dbus_identityExample(dbusCaller=None):
+        d = self.getConnection().getConnectionUnixUser( dbusCaller )
+
+        d.addCallback( lambda uid : 'Your Unix User Id is: %d' % uid )
+
+        return d
+----------------------------------------------------------------------
+
+
+Resolving Conflicting Interface Declarations
+--------------------------------------------
+
+Mapping DBus method calls to methods named +dbus_<DBusMethodName>+ is generally
+a convenient mechanism. However, it can result in confusion when multiple
+supported interfaces define methods with the same name.  To resolve this
+situation, the +dbusMethod()+ decorator may be used to explicitly bind a method
+to the desired interface.
+
+.Resolving Conflicting Interface Method Declarations - Server Side
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Method
+from tx.dbus.objects   import dbusMethod
+
+
+class MyObj (objects.DBusObject):
+
+    iface1 = DBusInterface('org.example.MyIFace1',
+                           Method('common'))
+
+    iface2 = DBusInterface('org.example.MyIFace2',
+                           Method('common'))
+
+    dbusInterfaces = [iface1, iface2]
+
+    def __init__(self, objectPath):
+        super(MyObj, self).__init__(objectPath)
+
+    @dbusMethod('org.example.MyIFace1', 'common')
+    def dbus_common1(self):
+        print 'iface1 common called!'
+
+    @dbusMethod('org.example.MyIFace2', 'common')
+    def dbus_common2(self):
+        print 'iface2 common called!'
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( MyObj('/MultiInterfaceObject') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /MultiInterfaceObject'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+----------------------------------------------------------------------
+
+Similarly, action must be taken on the client side to ensure that the
+appropriate function is executed when multiple interfaces support methods of
+the same name. The +interface+ key-word argument to the +callRemote()+ function
+may be used to identify the desired interface.  If the +interfaces+ argument is
+not used in this situation, it is "implementation defined" as to which
+interface's method will be invoked. 
+
+.Resolving Conflicting Interface Method Declarations - Client Side
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/MultiInterfaceObject' )
+
+        yield robj.callRemote('common', interface='org.example.MyIFace1')
+        yield robj.callRemote('common', interface='org.example.MyIFace2')
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+Signals
+-------
+
+Signals are emitted by subclasses of +DBusObject+ using the +emitSignal()+ method
+
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Signal
+
+
+class SignalSender (objects.DBusObject):
+
+    iface = DBusInterface( 'org.example.SignalSender',
+                           Signal('tick', 'u')
+                         )
+
+    dbusInterfaces = [iface]
+    
+    def __init__(self, objectPath):
+        super(SignalSender, self).__init__(objectPath)
+        self.count = 0
+
+
+    def sendTick(self):
+        self.emitSignal('tick', self.count)
+        self.count += 1
+        reactor.callLater(1, self.sendTick)
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        s = SignalSender('/Signaller')
+        
+        conn.exportObject( s )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /Signaller'
+        print 'Emitting "tick" signals every second'
+        
+        s.sendTick() # begin looping
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+----------------------------------------------------------------------
+
+The corresponding client code to receive the emitted signals is:
+
+.Signal Reception Example
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+def onSignal( tickCount ):
+    print 'Got tick signal: ', tickCount
+
+    
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/Signaller' )
+
+        robj.notifyOnSignal( 'tick', onSignal )
+        
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+Note that this client code uses introspection to obtain the API of the
+remote object emitting the signals. Consequently, the server application must
+be up and running when the client application starts or an error will be thrown
+from +getRemoteObject()+ when the introspection fails. Were the interface
+specified explicitly, the signal registration would succeed even if the
+emitting application were entirely disconnected from the bus. The following
+code can be run at any time and, if launched before the signal-emitting
+application, it will never miss any messages.
+
+.Signal Reception With Explicit Interface Specification
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, error
+from tx.dbus.interface import DBusInterface, Signal
+
+signal_iface = DBusInterface( 'org.example.SignalSender',
+                              Signal('tick', 'u')
+                              )
+
+def onSignal( tickCount ):
+    print 'Got tick signal: ', tickCount
+
+    
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/Signaller', signal_iface )
+
+        robj.notifyOnSignal( 'tick', onSignal )
+        
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+
+
+DBus Structure Handling and Object Serialization
+------------------------------------------------
+
+When calling methods that accept structures as arguments, such as
++(si)+ (a structure containing a string and 32-bit signed integer)
+the argument passed to the callRemote() method should be 2-element
+list containing the desired string and integer
+
+[source,python]
+----------------------------------------------------------------------
+    # -- Server Snippet --
+    ...
+    Method('structArg', '(si)', 's')
+    ...
+    def dbus_structArg(self, arg):
+    	return 'You sent (%s, %d)' % (arg[0], arg[1])
+
+    # -- Client Snippet --
+    remoteObj.callRemote('structArg', ['Foobar', 1])
+----------------------------------------------------------------------
+
+It is also possible to pass Python objects instead of lists to arguments
+requiring a structure type. If the object contains a +dbusOrder+ member
+variable, it will be used as an ordered list of attribute names by the
+serialization process. For example, the client portion of the previous code
+snippet could be equivalently written as
+
+[source,python]
+----------------------------------------------------------------------
+    class DBSerializeable(object):
+       dbusOrder = ['text', 'number']
+       def __init__(self, txt, num):
+           self.text   = txt
+           self.number = num
+
+    serialObj = DBSerializeable( 'Foobar', 1 )
+
+    remoteObj.callRemote('structArg', serialObj)
+----------------------------------------------------------------------
+
+Error Handling
+--------------
+
+DBus reports errors with dedicated error messages. Some of these messages
+are generated by the bus itself, such as when a remote method call is sent
+to bus name that does not exist, others are generated within client
+applications, such as when invalid argument values are detected.
+
+Any exception raised during the invocation of a +dbus_*+ method will be
+converted into a proper DBus error message. The name of the DBus error message
+will default to +org.txdbus.PythonException.<CLASS_NAME>+. If the
+exception object has a +dbusErrorName+ member variable, that value will be used
+instead. All error messages sent by this implementation include a single string
+parameter that is obtained by converting the exception instance to a string.
+
+.Error Generation Example
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Method
+
+class ExampleException (Exception):
+    dbusErrorName = 'org.example.ExampleException'
+
+class ErrObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.ErrorExample',
+                          Method('throwError'))
+
+
+    dbusInterfaces = [iface]
+    
+    def __init__(self, objectPath):
+        super(ErrObj, self).__init__(objectPath)
+
+        
+    def dbus_throwError(self):
+    	raise ExampleException('Uh oh')
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( ErrObj('/ErrorObject') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /ErrorObject'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+----------------------------------------------------------------------
+
+Failures occuring during remote method invocation are reported to the calling
+code as instances of +tx.dbus.error.RemoteError+. Instances of this object have
+two fields +errName+ which is the textual name of the DBus error and an
+optional +message+. DBus does not formally define the content of error
+messages. However, if the DBus error message contains a single string parameter
+(which is often the case in practice), it will be assigned to the +message+
+field of the +RemoteError+ instance.
+
+[source,python]
+----------------------------------------------------------------------
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/ErrorObject' )
+
+        try:
+            yield robj.callRemote('throwError')
+
+            print 'Not Reached'
+
+        except error.RemoteError, e:
+            print 'Client threw an error named: ', e.errName
+            print 'Error message: ', e.message
+
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()
+----------------------------------------------------------------------
+

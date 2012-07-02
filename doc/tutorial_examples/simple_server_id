@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Method
+
+
+class MyObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.MyIFace',
+                          Method('exampleMethod', arguments='s', returns='s' ))
+
+    
+    def __init__(self, objectPath):
+        super(MyObj, self).__init__(objectPath, self.iface)
+
+        
+    def dbus_exampleMethod(self, arg, dbusCaller=None):
+        d = self.getConnection().getConnectionUnixUser( dbusCaller )
+
+        d.addCallback( lambda uid : 'Your Unix User Id is: %d' % uid )
+
+        return d
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( MyObj('/MyObjPath') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /MyObjPath'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+

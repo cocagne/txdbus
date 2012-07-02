@@ -1,0 +1,30 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, error
+from tx.dbus.interface import DBusInterface, Method
+
+peer_iface = DBusInterface( 'org.freedesktop.DBus.Peer',
+                            Method('Ping')
+                          )
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli  = yield client.connect(reactor)
+
+        robj = yield cli.getRemoteObject( 'org.example', '/MyObjPath', peer_iface )
+
+        yield robj.callRemote('Ping')
+
+        print 'Ping Succeeded. org.example is available'
+        
+    except error.DBusException, e:
+        print 'Ping Failed. org.example is not available'
+
+    reactor.stop()
+
+reactor.callWhenRunning(main)
+reactor.run()
