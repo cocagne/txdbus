@@ -9,10 +9,10 @@ Twisted DBus is a native Python implementation of the
 http://dbus.freedesktop.org/doc/dbus-specification.html[DBus protocol]
 for the http://twistedmatrix.com/trac/[Twisted] networking framework.
 
-In addition to a link:doc/tutorial.asciidoc[Tutorial], and collection
-of link:doc/tutorial_examples[Examples], the
-documentation for this project also inclues
-link:doc/dbus_overview.asciidoc[An Overview of the DBus Protocol]
+In addition to a http://packages.python.org/twisted_dbus/[Tutorial], and collection
+of https://github.com/cocagne/twisted_dbus/tree/master/doc/tutorial_examples[Examples], 
+the documentation for this project also includes
+http://packages.python.org/twisted_dbus/dbus_overview.html[An Overview of the DBus Protocol]
 
 *License*: http://www.opensource.org/licenses/mit-license.php[MIT]
 
