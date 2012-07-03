@@ -91,11 +91,6 @@ class BasicDBusProtocol(protocol.Protocol):
         if self._client:
             # DBus specification requires that clients send a null byte upon connection
             # to the bus
-            if _is_linux:
-                import socket
-                self.transport.socket.setsockopt(socket.SOL_SOCKET,
-                                                 16, # SO_PASSCRED constant
-                                                 1)
             self.transport.write('\0')
 
 
