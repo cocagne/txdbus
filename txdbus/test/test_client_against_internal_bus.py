@@ -4,7 +4,7 @@ import sys
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor, defer
 
-from tx.dbus import objects, endpoints, bus, error, client
+from txdbus import objects, endpoints, bus, error, client
 from twisted.trial import unittest
 
 import client_tests

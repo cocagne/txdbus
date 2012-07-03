@@ -2,7 +2,7 @@ import os
 from twisted.trial import unittest
 from twisted.internet import reactor
 
-from tx.dbus import error, message
+from txdbus import error, message
 
 class MessageTester(unittest.TestCase):
     def test_too_long(self):

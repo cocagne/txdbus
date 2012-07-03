@@ -13,8 +13,8 @@ import binascii
 
 from   zope.interface import Interface, implements
 
-from   tx.dbus.protocol import IDBusAuthenticator
-from   tx.dbus.error    import DBusAuthenticationFailed
+from   txdbus.protocol import IDBusAuthenticator
+from   txdbus.error    import DBusAuthenticationFailed
 
 from twisted.python import log
 

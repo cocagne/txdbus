@@ -2,9 +2,9 @@
 
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Method
-from tx.dbus.objects   import dbusMethod
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Method
+from txdbus.objects   import dbusMethod
 
 
 class MyObj (objects.DBusObject):

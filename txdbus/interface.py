@@ -6,7 +6,7 @@ model's definition of Interfaces.
 @author: Tom Cocagne
 """
 
-from tx.dbus import marshal
+from txdbus import marshal
 
 
 class Method (object):

@@ -84,7 +84,7 @@ the +org.freedesktop.Notifications+ DBus API
 #!/usr/bin/python
 
 from twisted.internet import reactor, defer
-from tx.dbus import error, client
+from txdbus import error, client
 
 
 def delay(t):
@@ -131,9 +131,9 @@ DBus Connections
 ----------------
 
 In order to make any use of DBus, a connection to the bus must first be
-established. This is accomplished through the +tx.dbus.client.connect(reactor,
+established. This is accomplished through the +txdbus.client.connect(reactor,
 busAddress="session")+ method which returns a Deferred to a
-+tx.dbus.client.DBusClientConnection+ instance. The +busAddress+ parameter
++txdbus.client.DBusClientConnection+ instance. The +busAddress+ parameter
 supports two special-case addresses in addition to the standard server
 addresses as defined by the DBus specification. If 'session' (the default) or
 'system' is passed, the client will attempt to connect to the local session or
@@ -147,7 +147,7 @@ types.
 [source,python]
 ----------------------------------------------------------------------
 from twisted.internet import reactor
-from tx.dbus import client
+from txdbus import client
 
 def onConnected(cli):
     print 'Connected to the session bus!'
@@ -205,7 +205,7 @@ method invocation must be specified manually.
 
 Both mechanisms use a function called +callRemote()+ to effect the remote
 method invocation. The low-level +callRemote()+ is provided by the
-+tx.dbus.client.DBusClientConnection+ class and requires a large number of
++txdbus.client.DBusClientConnection+ class and requires a large number of
 arguments.  The proxy object's +callRemote()+ method wraps the low-level method
 and hides most of the details. In addition to accepting the name of the method
 to invoke and a list of positional arguments, both interfaces also accept the
@@ -229,7 +229,7 @@ If set to +True+ (the default), the DBus daemon will attempt to auto-start a
 service to handle the remote call if the service is not already running. 
 
 |timeout |
-If specified, the returned Deferred will be errbacked with a +tx.dbus.error.TimeOut+
+If specified, the returned Deferred will be errbacked with a +txdbus.error.TimeOut+
 instance if the remote call does not return before the timeout elapses (defaults to
 infinity).
 
@@ -252,7 +252,7 @@ method invocation.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 @defer.inlineCallbacks
 def main():
@@ -291,7 +291,7 @@ Low Level Method Invocation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In addition to method invocation through proxy objects, the
-+tx.dbus.client.DBusClientConnection+ class provides a low-level +callRemote()+
++txdbus.client.DBusClientConnection+ class provides a low-level +callRemote()+
 function that may be used to directly invoke remote methods. However, all
 parameters typically hidden by the proxy objects such as signature strings,
 destination bus addresses, and the like must be explicitly specified. As with
@@ -305,7 +305,7 @@ API to invoke the +Ping+ method without the use of a proxy object.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 @defer.inlineCallbacks
 def main():
@@ -347,8 +347,8 @@ interface specification for a remote object.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, error
-from tx.dbus.interface import DBusInterface, Method
+from txdbus           import client, error
+from txdbus.interface import DBusInterface, Method
 
 peer_iface = DBusInterface( 'org.freedesktop.DBus.Peer',
                             Method('Ping')
@@ -380,7 +380,7 @@ better demonstrate DBus interface definition, consider the following code
 
 [source,python]
 ----------------------------------------------------------------------
-from tx.dbus.interface import DBusInterface, Method, Signal
+from txdbus.interface import DBusInterface, Method, Signal
 
 # Method( method_name, arguments='', returns='')
 # Signal( signal_name, arguments='' )
@@ -402,9 +402,9 @@ Exporting Objects Over DBus
 ---------------------------                           
 
 In order to export an object over DBus, it must support the
-+tx.dbus.objects.IDBusObject+ interface. While this interface may be directly
++txdbus.objects.IDBusObject+ interface. While this interface may be directly
 supported by applications, it will typically be easier to derive from the
-default implementation provided by the +tx.dbus.objects.DBusObject+ class. The
+default implementation provided by the +txdbus.objects.DBusObject+ class. The
 easiest way to explain its use is by way of example. The following code
 demonstrates a simple object exported over DBus.
 
@@ -413,8 +413,8 @@ demonstrates a simple object exported over DBus.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Method
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Method
 
 
 class MyObj (objects.DBusObject):
@@ -471,7 +471,7 @@ The following code demonstrates the use of the exported object.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 
 @defer.inlineCallbacks
@@ -500,7 +500,7 @@ DBus Properties
 ~~~~~~~~~~~~~~~
 
 Tx DBus supports DBus Properties through the 
-+tx.dbus.objects.DBusProperty+ class. This class leverages Python's
++txdbus.objects.DBusProperty+ class. This class leverages Python's
 descriptor capabilities to provide near-transparent support for
 DBus Properties.
 
@@ -513,9 +513,9 @@ will be generated each time the value is assigned to (defaults to True).
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Property
-from tx.dbus.objects   import DBusProperty
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Property
+from txdbus.objects   import DBusProperty
 
 
 class MyObj (objects.DBusObject):
@@ -560,7 +560,7 @@ Client-side property use:
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 
 @defer.inlineCallbacks
@@ -617,7 +617,7 @@ connection.
 Although the unique bus name of the caller is often not very useful
 in and of itself it can be reliably converted into a Unix user id
 with the +getConnectionUnixUser()+ method of 
-+tx.dbus.client.DBusClientConnection+:
++txdbus.client.DBusClientConnection+:
 
 .Determining Unix User Id of the caller
 [source,python]
@@ -645,9 +645,9 @@ to the desired interface.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Method
-from tx.dbus.objects   import dbusMethod
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Method
+from txdbus.objects   import dbusMethod
 
 
 class MyObj (objects.DBusObject):
@@ -704,7 +704,7 @@ interface's method will be invoked.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 
 @defer.inlineCallbacks
@@ -737,8 +737,8 @@ Signals are emitted by subclasses of +DBusObject+ using the +emitSignal()+ metho
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Signal
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Signal
 
 
 class SignalSender (objects.DBusObject):
@@ -792,7 +792,7 @@ The corresponding client code to receive the emitted signals is:
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 
 def onSignal( tickCount ):
@@ -831,8 +831,8 @@ application, it will never miss any messages.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, error
-from tx.dbus.interface import DBusInterface, Signal
+from txdbus           import client, error
+from txdbus.interface import DBusInterface, Signal
 
 signal_iface = DBusInterface( 'org.example.SignalSender',
                               Signal('tick', 'u')
@@ -921,8 +921,8 @@ parameter that is obtained by converting the exception instance to a string.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Method
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Method
 
 class ExampleException (Exception):
     dbusErrorName = 'org.example.ExampleException'
@@ -964,7 +964,7 @@ reactor.run()
 ----------------------------------------------------------------------
 
 Failures occuring during remote method invocation are reported to the calling
-code as instances of +tx.dbus.error.RemoteError+. Instances of this object have
+code as instances of +txdbus.error.RemoteError+. Instances of this object have
 two fields +errName+ which is the textual name of the DBus error and an
 optional +message+. DBus does not formally define the content of error
 messages. However, if the DBus error message contains a single string parameter
@@ -975,7 +975,7 @@ field of the +RemoteError+ instance.
 ----------------------------------------------------------------------
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 
 @defer.inlineCallbacks

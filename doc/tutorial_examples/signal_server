@@ -2,8 +2,8 @@
 
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, objects, error
-from tx.dbus.interface import DBusInterface, Signal
+from txdbus           import client, objects, error
+from txdbus.interface import DBusInterface, Signal
 
 
 class SignalSender (objects.DBusObject):

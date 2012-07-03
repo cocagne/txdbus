@@ -14,10 +14,10 @@ from twisted.internet import reactor, defer
 from twisted.internet.protocol import Factory
 from twisted.internet.error import ConnectError
 
-import tx.dbus.protocol
+import txdbus.protocol
 
-from tx.dbus import authentication, message, objects, introspection, router
-from tx.dbus import error
+from txdbus import authentication, message, objects, introspection, router
+from txdbus import error
 
 
 # Constant return values for requestBusName
@@ -38,7 +38,7 @@ _NO_CHECK_RETURN   = '__DBUS_NO_RETURN_VALUE'
 
 
 
-class DBusClientConnection (tx.dbus.protocol.BasicDBusProtocol):
+class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
     """
     Client-side implementation of the DBus Protocol.
 
@@ -644,7 +644,7 @@ def connect( reactor,  busAddress='session' ):
     @rtype: L{DBusClientConnection}
     @returns: Deferred to L{DBusClientConnection} 
     """
-    from tx.dbus import endpoints
+    from txdbus import endpoints
 
     f = DBusClientFactory()
 

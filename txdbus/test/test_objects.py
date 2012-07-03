@@ -2,7 +2,7 @@ import os
 from twisted.trial import unittest
 from twisted.internet import reactor
 
-from tx.dbus import error, objects
+from txdbus import error, objects
 
 class ObjectsTester(unittest.TestCase):
 

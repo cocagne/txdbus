@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from twisted.internet import reactor
-from tx.dbus import client
+from txdbus import client
 
             
 def onSignal( tickCount ):

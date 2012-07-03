@@ -7,7 +7,7 @@ Provides data marshalling to and from the DBus wire format
 import struct
 import re
 
-from tx.dbus.error import MarshallingError
+from txdbus.error import MarshallingError
 
 
 invalid_obj_path_re = re.compile('[^a-zA-Z0-9_/]')

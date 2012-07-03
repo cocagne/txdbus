@@ -7,7 +7,7 @@ import cStringIO
 import xml.sax
 import xml.sax.handler
 
-from tx.dbus import interface
+from txdbus import interface
 
 
 _dtd_decl = '''<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"

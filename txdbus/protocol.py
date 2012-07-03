@@ -11,7 +11,7 @@ from   zope.interface import Interface
 from   twisted.internet import protocol, defer, error
 from   twisted.python import log
 
-from tx.dbus import message, error
+from txdbus import message, error
 
 _is_linux = False
 

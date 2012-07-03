@@ -2,7 +2,7 @@
 
 from twisted.internet import reactor, defer
 
-from tx.dbus import client, error
+from txdbus import client, error
 
 @defer.inlineCallbacks
 def main():

@@ -2,8 +2,8 @@
 
 from twisted.internet import reactor, defer
 
-from tx.dbus           import client, error
-from tx.dbus.interface import DBusInterface, Method
+from txdbus           import client, error
+from txdbus.interface import DBusInterface, Method
 
 peer_iface = DBusInterface( 'org.freedesktop.DBus.Peer',
                             Method('Ping')

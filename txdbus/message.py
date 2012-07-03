@@ -3,7 +3,7 @@ Module to represent DBus Messages
 
 @author: Tom Cocagne
 """
-from tx.dbus import marshal, error
+from txdbus import marshal, error
 
 
 _headerFormat = 'yyyyuua(yv)'

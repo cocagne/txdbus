@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from twisted.internet import reactor
-from tx.dbus import client
-from tx.dbus.interface import DBusInterface, Method
+from txdbus import client
+from txdbus.interface import DBusInterface, Method
 
 iface = DBusInterface( 'org.freedesktop.DBus.Peer',
                        Method('Ping')

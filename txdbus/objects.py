@@ -11,7 +11,7 @@ from twisted.internet import defer
 
 from zope.interface import Interface, implements
 
-from tx.dbus import interface, error, marshal, message, introspection
+from txdbus import interface, error, marshal, message, introspection
 
 
 

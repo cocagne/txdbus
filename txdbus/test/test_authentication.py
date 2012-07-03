@@ -11,8 +11,8 @@ from twisted.trial import unittest
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor, defer, protocol, error
 
-from tx.dbus import bus, endpoints, authentication
-from tx.dbus.authentication import DBusAuthenticationFailed
+from txdbus import bus, endpoints, authentication
+from txdbus.authentication import DBusAuthenticationFailed
 
 
 class GetPass(object):

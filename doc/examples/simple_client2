@@ -2,7 +2,7 @@
 
 from twisted.internet import reactor
 
-from tx.dbus import client
+from txdbus import client
 
 def onReply( rep ):
     print 'Remote method call result: ', rep

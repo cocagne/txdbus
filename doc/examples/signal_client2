@@ -10,9 +10,9 @@
 
 from twisted.internet import reactor
 
-from tx.dbus import client
+from txdbus import client
 
-from tx.dbus.interface import DBusInterface, Signal
+from txdbus.interface import DBusInterface, Signal
 
 iface = DBusInterface( 'org.example.SignalSender',
                        Signal('tick', 'u')

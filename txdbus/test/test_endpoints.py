@@ -5,7 +5,7 @@ from twisted.internet import reactor
 from twisted.internet.endpoints import UNIXClientEndpoint, TCP4ClientEndpoint
 from twisted.internet.endpoints import UNIXServerEndpoint, TCP4ServerEndpoint
 
-from tx.dbus import error, endpoints
+from txdbus import error, endpoints
 
 class EndpointsTester(unittest.TestCase):
 

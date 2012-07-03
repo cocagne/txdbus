@@ -1,7 +1,7 @@
 import unittest
 from struct import pack
 
-import tx.dbus.marshal as m
+import txdbus.marshal as m
 
 #dbus_types = [ ('BYTE',        'y',     1),
 #               ('BOOLEAN',     'b',     4),

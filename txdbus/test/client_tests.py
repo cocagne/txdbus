@@ -15,10 +15,10 @@ import sys
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor, defer
 
-from tx.dbus import objects, endpoints, bus, error, client, introspection
-from tx.dbus.interface import DBusInterface, Method, Signal, Property
+from txdbus import objects, endpoints, bus, error, client, introspection
+from txdbus.interface import DBusInterface, Method, Signal, Property
 
-from tx.dbus.objects import dbusMethod, DBusProperty
+from txdbus.objects import dbusMethod, DBusProperty
 
 
 

@@ -1,30 +1,7 @@
-Tx DBus README
-==============
-Tom Cocagne <tom.cocagne@gmail.com>
-v1.0, July 2012
-
-Introduction
-------------
-Tx DBus is a native Python implementation of the 
-http://dbus.freedesktop.org/doc/dbus-specification.html[DBus protocol]
-for the http://twistedmatrix.com/trac/[Twisted] networking framework.
-
-In addition to a http://packages.python.org/txdbus/[Tutorial], and collection
-of https://github.com/cocagne/txdbus/tree/master/doc/tutorial_examples[Examples], 
-the documentation for this project also includes
-http://packages.python.org/txdbus/dbus_overview.html[An Overview of the DBus Protocol]
-
-*License*: http://www.opensource.org/licenses/mit-license.php[MIT]
-
-Quick Example
--------------
-
-[source,python]
-----------------------------------------------------------------------
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from twisted.internet import reactor, defer
-from txdbus import error, client
+from tx.dbus import error, client
 
 @defer.inlineCallbacks
 def show_desktop_notification():
@@ -55,8 +32,6 @@ def show_desktop_notification():
 
 reactor.callWhenRunning(show_desktop_notification)
 reactor.run()
-
-----------------------------------------------------------------------
 
 
 

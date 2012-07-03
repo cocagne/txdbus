@@ -10,11 +10,11 @@ import binascii
 from twisted.internet.protocol import Factory
 from twisted.python import log
 
-import tx.dbus.protocol
+import txdbus.protocol
 
-from tx.dbus import authentication, router, message, objects, client, error
-from tx.dbus import marshal
-from tx.dbus.interface import DBusInterface, Method, Signal
+from txdbus import authentication, router, message, objects, client, error
+from txdbus import marshal
+from txdbus.interface import DBusInterface, Method, Signal
 
 
 class DError(Exception):
@@ -31,7 +31,7 @@ class DError(Exception):
         return self.errorMessage
 
 
-class BusProtocol (tx.dbus.protocol.BasicDBusProtocol):
+class BusProtocol (txdbus.protocol.BasicDBusProtocol):
     """
     Instances of this class handle connections to DBus clients
 
