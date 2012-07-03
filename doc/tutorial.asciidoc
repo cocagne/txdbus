@@ -1,14 +1,14 @@
-Twisted DBus Tutorial
-=====================
+Tx DBus Tutorial
+================
 Tom Cocagne <tom.cocagne@gmail.com>
 v1.0, July 2012
 
 Introduction
 ------------
 
-Twisted DBus is a native-python implementation of the DBus protocol on
+Tx DBus is a native-python implementation of the DBus protocol on
 top of the Twisted networking engine. The purpose of this tutorial is to
-provide an introduction to the use of Twisted DBus and demonstrate
+provide an introduction to the use of Tx DBus and demonstrate
 the main APIs necessary to successfully incorproate it within Twisted
 applications. This tutorial assumes a basic understanding of both Twisted
 and DBus. 
@@ -131,7 +131,7 @@ addresses as defined by the DBus specification. If 'session' (the default) or
 system busses, respectively. For typical usage, these special-case addresses
 will likely suffice.
 
-Twisted DBus currently supports the +unix+, +tcp+, and +nonce-tcp+ connection 
+Tx DBus currently supports the +unix+, +tcp+, and +nonce-tcp+ connection 
 types.
 
 .Bus Connection
@@ -154,7 +154,7 @@ reactor.run()
 DBus Clients
 ------------
 
-Twisted DBus provides two APIs for interacting with remote objects. The
+Tx DBus provides two APIs for interacting with remote objects. The
 generally preferred and significantly easier to use mechanism involves creating
 local proxies to represent remote objects. Signal registration and remote
 method invocation is then done by way of the proxy instances which hide
@@ -163,7 +163,7 @@ direct remote method invocation and message matching registration. Although
 generally much less convenient, the low-level APIs provide full access to the
 DBus internals.
 
-As with most dynamic language bindings, Twisted DBus will automatically use the
+As with most dynamic language bindings, Tx DBus will automatically use the
 DBus introspection mechanism to obtain interface definitions for remote objects
 if they are not explicitly provided. While introspection is certainly a
 convenient mechanism and appropriate for many use cases, there are some
@@ -490,7 +490,7 @@ reactor.run()
 DBus Properties
 ~~~~~~~~~~~~~~~
 
-Twisted DBus supports DBus Properties through the 
+Tx DBus supports DBus Properties through the 
 +tx.dbus.objects.DBusProperty+ class. This class leverages Python's
 descriptor capabilities to provide near-transparent support for
 DBus Properties.
