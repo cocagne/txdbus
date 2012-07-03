@@ -10,8 +10,17 @@ Tx DBus is a native-python implementation of the DBus protocol on
 top of the Twisted networking engine. The purpose of this tutorial is to
 provide an introduction to the use of Tx DBus and demonstrate
 the main APIs necessary to successfully incorproate it within Twisted
-applications. This tutorial assumes a basic understanding of both Twisted
-and DBus. 
+applications. 
+
+This tutorial assumes a basic understanding of both Twisted
+and DBus. The Twisted project provides excellent 
+http://twistedmatrix.com/documents/current/core/howto/index.html[documentation]
+for quickly getting up to speed with the framework. As for DBus, several good
+resources are available:
+
+* link:dbus_overview.html[DBus Overview] (part of this project)
+* http://dbus.freedesktop.org/doc/dbus-tutorial.html[DBus Tutorial]
+* http://dbus.freedesktop.org/doc/dbus-specification.html[DBus Specification]
 
 
 Inline Callbacks
