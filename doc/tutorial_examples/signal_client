@@ -1,0 +1,27 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+def onSignal( tickCount ):
+    print 'Got tick signal: ', tickCount
+
+    
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/Signaller' )
+
+        robj.notifyOnSignal( 'tick', onSignal )
+        
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+                
+reactor.callWhenRunning(main)
+reactor.run()

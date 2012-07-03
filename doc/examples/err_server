@@ -1,0 +1,38 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client, objects
+from tx.dbus.interface import DBusInterface, Method, Signal
+
+class ExampleException (Exception):
+    dbusErrorName = 'org.example.ExampleException'
+
+class MyObj (objects.DBusObject):
+
+    count = 0
+    iface = DBusInterface('org.example.MyIFace',
+                          Method('throwError'))
+
+    dbusInterfaces = [iface]
+
+    def __init__(self, objectPath):
+        objects.DBusObject.__init__(self, objectPath)
+
+
+    def dbus_throwError(self):
+    	self.count += 1
+        raise ExampleException('Exception count %d' % self.count)
+        
+    
+def onConnected(conn):
+    conn.exportObject( MyObj('/MyObjPath') )
+    return conn.requestBusName('org.example')
+
+
+d = client.connect(reactor)
+
+d.addCallback(onConnected)
+
+reactor.run()
+

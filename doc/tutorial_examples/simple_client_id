@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        userid  = yield cli.getConnectionUnixUser( 'org.example' )
+
+        print 'User of org.example: ', userid
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()

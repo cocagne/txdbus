@@ -1,0 +1,26 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/MultiInterfaceObject' )
+
+        yield robj.callRemote('common', interface='org.example.MyIFace1')
+        yield robj.callRemote('common', interface='org.example.MyIFace2')
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()

@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+from tx.dbus import error, client
+
+
+def delay(t):
+    d = defer.Deferred()
+    reactor.callLater(t, lambda : d.callback(None) )
+    return d
+
+
+@defer.inlineCallbacks
+def show_desktop_notification( duration, message ):
+    '''
+    Shows the message as a desktop nofification for the specified
+    number of seconds
+    '''
+    con = yield client.connect(reactor, 'session')
+
+    notifier = yield con.getRemoteObject('org.freedesktop.Notifications',
+                                         '/org/freedesktop/Notifications')
+
+    nid = yield notifier.callRemote('Notify',
+                                    'Example Application', 0,
+                                    '',
+                                    'Example Notification Summary',
+                                    message,
+                                    [], dict(),
+                                    10)
+    
+    yield delay(3)
+
+    yield notifier.callRemote('CloseNotification', nid)
+
+
+def main():
+    d = show_desktop_notification( 5, "Hello World!" )
+    
+    d.addCallback( lambda _: reactor.stop() )
+
+
+reactor.callWhenRunning(main)
+reactor.run()
+

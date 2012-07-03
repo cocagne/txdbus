@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client
+
+from tx.dbus.interface import DBusInterface, Method
+
+iface = DBusInterface( 'org.freedesktop.DBus.Peer',
+                       Method('Ping')
+                     )
+                
+def onConnected(cli):
+    d = cli.getRemoteObject( 'org.example', '/MyObjPath', iface )
+
+    def gotObject( ro ):
+
+        def onReply( rep ):
+            print 'Object is available'
+            reactor.stop()
+
+        def onErr( err ):
+            print 'Object does not exist. Retrying...'
+            
+        def ping():
+            reactor.callLater(1, ping)
+            ro.callRemote('Ping').addCallbacks( onReply, onErr )
+
+        ping()
+
+    d.addCallbacks( gotObject )
+
+    return d
+
+
+def onFailed(err):
+    print 'Failed: ', err.getErrorMessage()
+
+    
+dc = client.connect(reactor)
+
+dc.addCallbacks(onConnected)
+dc.addErrback(onFailed)
+
+reactor.run()

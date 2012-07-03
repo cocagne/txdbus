@@ -1,0 +1,25 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client
+
+def onReply( rep ):
+    print 'Wont see this'
+                
+def onFailed(err):
+    print 'Remote error raised: ', err.getErrorMessage()
+    print 'DBus Error Name: ', err.value.errName
+    print 'Message: ', err.value.message
+
+
+dc = client.connect(reactor)
+
+dc.addCallback(lambda cli: cli.getRemoteObject( 'org.example',
+                                                '/MyObjPath' ))
+
+dc.addCallback(lambda ro: ro.callRemote('throwError'))
+dc.addCallbacks(onReply, onFailed)
+dc.addBoth( lambda _: reactor.stop() )
+
+reactor.run()

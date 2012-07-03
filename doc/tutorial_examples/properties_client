@@ -1,0 +1,40 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus import client, error
+
+
+@defer.inlineCallbacks
+def main():
+
+    try:
+        cli   = yield client.connect(reactor)
+
+        robj  = yield cli.getRemoteObject( 'org.example', '/MyObjPath' )
+
+        # Use the standard org.freedesktop.DBus.Properties.Get function to
+        # obtain the value of 'foo'. Only one interface on the remote object
+        # declares 'foo' so the interface name (the second function argument)
+        # may be omitted.
+        foo   = yield robj.callRemote('Get', '', 'foo')
+
+        # prints "bar"
+        print foo
+
+        yield robj.callRemote('Set', '', 'foo', 'baz')
+
+        foo   = yield robj.callRemote('Get', '', 'foo')
+
+        # prints "baz"
+        print foo
+        
+
+    except error.DBusException, e:
+        print 'DBus Error:', e
+
+    reactor.stop()
+
+                
+reactor.callWhenRunning(main)
+reactor.run()

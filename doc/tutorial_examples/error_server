@@ -1,0 +1,45 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+
+from tx.dbus           import client, objects, error
+from tx.dbus.interface import DBusInterface, Method
+
+class ExampleException (Exception):
+    dbusErrorName = 'org.example.ExampleException'
+
+class ErrObj (objects.DBusObject):
+
+    iface = DBusInterface('org.example.ErrorExample',
+                          Method('throwError'))
+
+
+    dbusInterfaces = [iface]
+    
+    def __init__(self, objectPath):
+        super(ErrObj, self).__init__(objectPath)
+
+        
+    def dbus_throwError(self):
+    	raise ExampleException('Uh oh')
+
+
+@defer.inlineCallbacks
+def main():
+    try:
+        conn = yield client.connect(reactor)
+
+        conn.exportObject( ErrObj('/ErrorObject') )
+
+        yield conn.requestBusName('org.example')
+
+        print 'Object exported on bus name "org.example" with path /ErrorObject'
+
+    except error.DBusException, e:
+        print 'Failed to export object: ', e
+        reactor.stop()
+        
+    
+reactor.callWhenRunning( main )
+reactor.run()
+

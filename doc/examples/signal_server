@@ -1,0 +1,55 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client, objects
+from tx.dbus.interface import DBusInterface, Method, Signal
+
+
+class SignalSender (objects.DBusObject):
+
+    iface = DBusInterface( 'org.example.SignalSender',
+                           Signal('tick', 'u')
+                         )
+
+    dbusInterfaces = [iface]
+
+    def __init__(self, objectPath):
+        objects.DBusObject.__init__(self, objectPath)
+        self.count = 0
+
+
+    def sendTick(self):
+        self.emitSignal('tick', self.count)
+        self.count += 1
+        reactor.callLater(1, self.sendTick)
+        
+    
+            
+def onErr(err):
+    print 'Failed: ', err.getErrorMessage()
+    reactor.stop()
+
+    
+def onConnected(conn):
+    s = SignalSender('/Signaller')
+    
+    conn.exportObject( s )
+    
+    dn = conn.requestBusName('org.example')
+
+    def onReady(_):
+        print 'Emitting periodic "tick" signals. Bus name: org.example, Object Path /Signaller'
+        s.sendTick()
+
+    dn.addCallback( onReady )
+
+    return dn
+    
+    
+dconnect = client.connect(reactor)
+
+dconnect.addCallback(onConnected)
+dconnect.addErrback(onErr)
+
+reactor.run()

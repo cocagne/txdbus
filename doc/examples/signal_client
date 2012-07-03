@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+from tx.dbus import client
+
+            
+def onSignal( tickCount ):
+    print 'Got tick signal: ', tickCount
+
+def onErr(err):
+    print 'Error: ', err.getErrorMessage()
+
+
+
+d = client.connect(reactor)
+
+d.addCallback( lambda cli: cli.getRemoteObject( 'org.example', '/Signaller' ) )
+d.addCallback( lambda ro: ro.notifyOnSignal( 'tick', onSignal ) ) 
+d.addErrback( onErr )
+
+reactor.run()

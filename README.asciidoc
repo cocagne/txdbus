@@ -1,0 +1,64 @@
+Twisted DBus README
+===================
+Tom Cocagne <tom.cocagne@gmail.com>
+v1.0, July 2012
+
+Introduction
+------------
+Twisted DBus is a native Python implementation of the 
+http://dbus.freedesktop.org/doc/dbus-specification.html[DBus protocol]
+for the http://twistedmatrix.com/trac/[Twisted] networking framework.
+
+In addition to a http://packages.python.org/twisted_dbus/[Tutorial], and collection
+of https://github.com/cocagne/twisted_dbus/tree/master/doc/tutorial_examples[Examples], 
+the documentation for this project also includes
+http://packages.python.org/twisted_dbus/dbus_overview.html[An Overview of the DBus Protocol]
+
+*License*: http://www.opensource.org/licenses/mit-license.php[MIT]
+
+Quick Example
+-------------
+
+[source,python]
+----------------------------------------------------------------------
+#!/usr/bin/python
+
+from twisted.internet import reactor, defer
+from tx.dbus import error, client
+
+@defer.inlineCallbacks
+def show_desktop_notification():
+    '''
+    Displays "Hello World!" in a desktop notification window for 3 seconds
+    '''
+    con = yield client.connect(reactor, 'session')
+
+    notifier = yield con.getRemoteObject('org.freedesktop.Notifications',
+                                         '/org/freedesktop/Notifications')
+
+    nid = yield notifier.callRemote('Notify',
+                                    'Example Application', 
+                                    0,
+                                    '',
+                                    'Twisted DBus Example',
+                                    'Hello World!',
+                                    [], dict(),
+                                    10)
+    
+    d = defer.Deferred()
+    reactor.callLater(3, lambda : d.callback(None))
+    yield d
+
+    yield notifier.callRemote('CloseNotification', nid)
+
+    reactor.stop()
+
+reactor.callWhenRunning(show_desktop_notification)
+reactor.run()
+
+----------------------------------------------------------------------
+
+
+
+
+

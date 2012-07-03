@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+from twisted.internet import reactor
+
+from tx.dbus import client
+
+
+def onConnected(cli):
+    d = cli.getRemoteObject( 'org.example', '/MyObjPath' )
+
+    def gotObject( ro ):
+
+        def onReply( rep ):
+            print 'Ping Success'
+            
+        dp = ro.callRemote('Ping')
+
+        dp.addCallback( onReply )
+
+        return dp
+        
+
+    d.addCallbacks( gotObject )
+
+    return d
+
+
+def onFailed(err):
+    print 'Failed: ', err.getErrorMessage()
+    
+dc = client.connect(reactor)
+
+dc.addCallbacks(onConnected)
+dc.addErrback(onFailed)
+dc.addBoth( lambda _: reactor.stop() )
+
+reactor.run()
