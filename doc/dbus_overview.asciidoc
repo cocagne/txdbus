@@ -1,14 +1,14 @@
 DBus Overview
 =============
 Tom Cocagne <tom.cocagne@gmail.com>
-v1.0, July 2012
+v1.0.1, August 2012
 
 D-Bus is an Inter-Process Communication (IPC) and Remote Procedure Calling
-(RPC) mechanism specifically designed for efficient, low-latency, and
-easy-to-use communication between processes running on the same machine. It is
-intended to replace the amalgam of competing IPC frameworks in this domain
-with a single, unified protocol that is tailored specifically for meeting the
-needs of secure, intra-system IPC.
+(RPC) mechanism specifically designed for efficient and easy-to-use
+communication between processes running on the same machine. It is intended to
+replace the amalgam of competing IPC frameworks in this domain with a single,
+unified protocol that is tailored specifically for meeting the needs of secure,
+intra-system IPC.
 
 There are two primary use-cases for which D-Bus is designed:
 
