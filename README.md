@@ -7,15 +7,15 @@ Introduction
 ------------
 
 TxDBus is a native Python implementation of the
-[DBus protocol]{http://dbus.freedesktop.org/doc/dbus-specification.html}
-for the [Twisted]{http://twistedmatrix.com/trac/} networking framework.
+[DBus protocol](http://dbus.freedesktop.org/doc/dbus-specification.html)
+for the [Twisted](http://twistedmatrix.com/trac/) networking framework.
 
-In addition to a [Tutorial]{http://packages.python.org/txdbus}, and collection
-of [Examples]{https://github.com/cocagne/txdbus/tree/master/doc/tutorial_examples},
+In addition to a [Tutorial](http://packages.python.org/txdbus), and collection
+of [Examples](https://github.com/cocagne/txdbus/tree/master/doc/tutorial_examples),
 the documentation for this project also includes
-[An Overview of the DBus Protocol]{http://packages.python.org/txdbus/dbus_overview.html}
+[An Overview of the DBus Protocol](http://packages.python.org/txdbus/dbus_overview.html)
 
-*License*: [MIT]{http://www.opensource.org/licenses/mit-license.php}
+*License*: [MIT](http://www.opensource.org/licenses/mit-license.php)
 
 Usage Example
 -------------
