@@ -1,5 +1,3 @@
-txdbus README
-=============
 Tom Cocagne <tom.cocagne@gmail.com>
 v1.0, July 2012
 
