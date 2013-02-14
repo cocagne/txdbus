@@ -1,4 +1,4 @@
-txdbus
+TxDBus
 ======
 
 Tom Cocagne <tom.cocagne@gmail.com>
