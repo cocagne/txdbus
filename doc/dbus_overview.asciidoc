@@ -91,7 +91,7 @@ names. To reduce the chance of name clashes, the accepted convention is to
 prefix the interface name with a reversed DNS domain name. For example, the
 standard "Introspection" interface is "org.freedesktop.DBus.Introspectable"
 
-The constratints on methods and signals names contained within D-Bus interfaces
+The constraints on methods and signals names contained within D-Bus interfaces
 are similar to those employed by many popular programming languages. They must
 begin with a letter and may consist of only letters, numbers, and underscores.
 
