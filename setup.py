@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-VERSION     = '1.0.2'
-DESCRIPTION = 'Tx DBus'
+VERSION     = '1.0.3'
+DESCRIPTION = 'txdbus'
 
-try:
-    import twisted
-except ImportError:
-    raise SystemExit('Missing requried dependency: Twisted')
 
 from distutils.core import setup
 
@@ -22,6 +18,7 @@ networking framework""",
     url              = 'https://github.com/cocagne/txdbus',
     author           = "Tom Cocagne",
     author_email     = 'tom.cocagne@gmail.com',
+    requires         = ['twisted (>10.0)',],
     packages         = ['txdbus',
                         'txdbus.test'],
     keywords         = ['dbus', 'twisted'],
