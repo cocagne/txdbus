@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 VERSION     = '1.0.3'
-DESCRIPTION = 'txdbus'
+DESCRIPTION = 'Tx DBus'
 
 
-from distutils.core import setup
+from setuptools import setup
 
 
 setup(
@@ -18,8 +18,7 @@ networking framework""",
     url              = 'https://github.com/cocagne/txdbus',
     author           = "Tom Cocagne",
     author_email     = 'tom.cocagne@gmail.com',
-    requires         = ['twisted'],
-    requirements     = ['twisted'],
+    install_requires = ['twisted>=10.1'],
     packages         = ['txdbus',
                         'txdbus.test'],
     keywords         = ['dbus', 'twisted'],
