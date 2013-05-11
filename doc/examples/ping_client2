@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 from twisted.internet import reactor
 from txdbus import client
 from txdbus.interface import DBusInterface, Method

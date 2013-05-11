@@ -1,7 +1,7 @@
 Tx DBus Tutorial
 ================
 Tom Cocagne <tom.cocagne@gmail.com>
-v1.0, July 2012
+v1.0.3, May 2013
 
 Introduction
 ------------
@@ -81,17 +81,10 @@ the +org.freedesktop.Notifications+ DBus API
 
 [source,python]
 ----------------------------------------------------------------------
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from twisted.internet import reactor, defer
 from txdbus import error, client
-
-
-def delay(t):
-    d = defer.Deferred()
-    reactor.callLater(t, lambda : d.callback(None) )
-    return d
-
 
 @defer.inlineCallbacks
 def show_desktop_notification( duration, message ):
@@ -110,12 +103,8 @@ def show_desktop_notification( duration, message ):
                                     'Example Notification Summary',
                                     message,
                                     [], dict(),
-                                    10)
+                                    duration * 1000)
     
-    yield delay(3)
-
-    yield notifier.callRemote('CloseNotification', nid)
-
 
 def main():
     d = show_desktop_notification( 5, "Hello World!" )

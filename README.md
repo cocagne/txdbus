@@ -22,7 +22,7 @@ Usage Example
 -------------
 
 ```python
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from twisted.internet import reactor, defer
 from txdbus import error, client
@@ -44,14 +44,8 @@ def show_desktop_notification():
                                     'Tx DBus Example',
                                     'Hello World!',
                                     [], dict(),
-                                    10)
+                                    3000)
     
-    d = defer.Deferred()
-    reactor.callLater(3, lambda : d.callback(None))
-    yield d
-
-    yield notifier.callRemote('CloseNotification', nid)
-
     reactor.stop()
 
 reactor.callWhenRunning(show_desktop_notification)
