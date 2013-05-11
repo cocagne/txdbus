@@ -11,8 +11,10 @@ class MyObj (objects.DBusObject):
     iface = DBusInterface('org.example.MyIFace',
                           Method('exampleMethod', arguments='s', returns='s' ))
 
+    dbusInterfaces = [iface]
+
     def __init__(self, objectPath):
-        objects.DBusObject.__init__(self, objectPath, self.iface)
+        objects.DBusObject.__init__(self, objectPath)
 
 
     def dbus_exampleMethod(self, arg):
