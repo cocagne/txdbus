@@ -930,6 +930,19 @@ class ErrorTester(ServerObjectTester):
                         on_err )
         return d
 
+
+    def test_err_no_object(self):        
+        def on_err( e ):
+            self.assertEquals('org.freedesktop.DBus.Error.UnknownObject: /TestObjINVALID is not an object provided by this process.',
+                              str(e.value))
+
+        d = self.client_conn.callRemote( self.tst_path + "INVALID", 'FooBarBaz',
+                                         destination = self.tst_bus )
+
+        d.addCallbacks( lambda _: self.fail('Call should have failed'),
+                        on_err )
+        return d
+
     
     def test_err_call_no_arguments(self):        
         def on_err( e ):

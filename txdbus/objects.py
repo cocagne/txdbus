@@ -772,6 +772,9 @@ class DBusObjectHandler (object):
         o = self.exports.get(msg.path, None)
 
         if o is None:
+            self._send_err( msg, 'org.freedesktop.DBus.Error.UnknownObject',
+                            '%s is not an object provided by this process.' %
+                            (msg.path))
             return
 
         if msg.interface == 'org.freedesktop.DBus.Introspectable' and (
