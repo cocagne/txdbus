@@ -366,7 +366,7 @@ def genCompleteTypes( compoundSig ):
 #
 
 def marshal_byte( ct, var, start_byte, lendian ):
-    return 1, [ struct.pack( lendian and '<b' or '>b', var) ]
+    return 1, [ struct.pack( lendian and '<B' or '>B', var) ]
 
 def marshal_boolean( ct, var, start_byte, lendian ):
     return 4, [ struct.pack( lendian and '<I' or '>I', 1 if var else 0) ]
