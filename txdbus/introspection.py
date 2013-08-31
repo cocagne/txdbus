@@ -28,6 +28,38 @@ _intro = '''  <interface name="org.freedesktop.DBus.Introspectable">
     </method>
   </interface>'''
 
+def generateIntrospectionXMLForPartialPath( objectPath, objectPathList):
+    """
+    Generates the introspection XML for a partial object path
+    that matches any of the delivered object paths in the list
+    
+    This method was introduced to make any DBus Service created with txdbus
+    behave in a way that d-feet, for example, expects
+    
+    @rtype: C{string}
+    """
+    
+    # make sure objectPath ends with '/' to only get partial matches based on
+    # the full path, not a part of a subpath
+    if not objectPath.endswith('/'):
+        objectPath += '/'
+    
+    # collect all objectpaths that match with this partial path
+    # and immediately only collect the part of the path after the match
+    # and get only the first part of the path that remains (partition)
+    matches = [path[len(objectPath):].partition('/')[0] 
+               for path in objectPathList 
+               if path.startswith(objectPath)]
+    if len(matches) == 0:
+        return None
+    
+    l = [_dtd_decl]
+    l.append('<node name="%s">' % (objectPath,))
+    for m in matches:
+        #insert only first part of path
+        l.append('<node name="%s"/>' % m )
+    l.append('</node>')
+    return '\n'.join(l)
 
 def generateIntrospectionXML( objectPath, ifaceList ):
     """
@@ -43,8 +75,6 @@ def generateIntrospectionXML( objectPath, ifaceList ):
     l.append(_intro)
     l.append('</node>')
     return '\n'.join(l)
-    
-
 
 # Returns a list of interfaces
 def getInterfacesFromXML( xmlStr, replaceKnownInterfaces = False ):
