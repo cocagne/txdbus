@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-VERSION     = '1.0.4'
+VERSION     = '1.0.5'
 DESCRIPTION = 'Tx DBus'
 
 try:
@@ -21,6 +21,7 @@ networking framework""",
     author           = "Tom Cocagne",
     author_email     = 'tom.cocagne@gmail.com',
     install_requires = ['twisted>=10.1'],
+    provides         = ['txdbus'],
     packages         = ['txdbus',
                         'txdbus.test'],
     keywords         = ['dbus', 'twisted'],
