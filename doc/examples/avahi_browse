@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+from twisted.internet import reactor, defer
+from txdbus import error, client
+
+import dbus
+import avahi
+
+
+name = "Avahi Interface Test"
+port = 12345
+stype = "_avahitest._tcp"
+domain = ""
+host = ""
+text = ["hello=world"]
+
+
+def resolved(*args):
+    print args
+
+def error(*args):
+    print args
+
+
+class AvahiBrowse():
+    
+    @defer.inlineCallbacks
+    def start(self):
+        
+        con = yield client.connect(reactor, 'system')
+        
+        # Get a handle to the server
+        self.server = yield con.getRemoteObject(
+            avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER)
+        
+        # Create new service browser -> Get back path to object
+        browser_path = yield self.server.callRemote(
+            'ServiceBrowserNew', 
+            avahi.IF_UNSPEC, 
+            avahi.PROTO_UNSPEC, 
+            stype,
+            domain, 
+            dbus.UInt32(0))
+        
+        # Get service browser object
+        self.browser = yield con.getRemoteObject(
+            avahi.DBUS_NAME, browser_path)
+        
+        # Setup listeners
+        self.browser.notifyOnSignal('ItemNew', self.new_service)
+        self.browser.notifyOnSignal('ItemRemove', self.remove_service)
+        
+        print "Now browsing for avahi services ..."
+    
+    
+    def new_service(self, interface, protocol, name, stype, domain, flags):
+        """Add servivce"""
+        
+        print "New service found:"
+        print interface, protocol, name, stype, domain, flags
+        
+        print "Browsing new-found service:"
+        self.server.callRemote(
+            "ResolveService", 
+            interface, 
+            protocol, 
+            name, 
+            stype, 
+            domain, 
+            avahi.PROTO_UNSPEC, 
+            dbus.UInt32(0)
+        ).addCallbacks(
+            resolved, 
+            error
+        )
+    
+    
+    def remove_service(self, interface, protocol, name, type, domain, flags):
+        """Remove service"""
+        print "Service was removed..."
+        print interface, protocol, name, type, domain, flags
+    
+    
+ab = AvahiBrowse()
+reactor.callWhenRunning(ab.start)
+reactor.run()
