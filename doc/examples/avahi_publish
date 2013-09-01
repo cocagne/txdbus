@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+from twisted.internet import reactor, defer
+from txdbus import client
+
+import dbus
+import avahi
+
+
+name = "Avahi Interface Test"
+port = 12345
+stype = "_avahitest._tcp"
+domain = ""
+host = ""
+text = ["hello=world"]
+
+
+class AvahiPublish():
+    
+    @defer.inlineCallbacks
+    def start(self):
+        
+        con = yield client.connect(reactor, 'system')
+        
+        # Get a handle to the server
+        server = yield con.getRemoteObject(
+            avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER)
+        
+        # Create a new entry group -> Get back path to objects
+        group_path = yield server.callRemote('EntryGroupNew')
+        
+        # Get entry group object
+        self.group = yield con.getRemoteObject(
+            avahi.DBUS_NAME, group_path)
+        
+        # Finally call the add service method
+        self.group.callRemote(
+            'AddService', avahi.IF_UNSPEC, avahi.PROTO_UNSPEC, dbus.UInt32(0), 
+            name, stype, domain, host, dbus.UInt16(port),
+            avahi.string_array_to_txt_array(text))
+        
+        # and commit the changes
+        self.group.callRemote('Commit')
+        
+        print "Avahi service has been published..."
+        
+        
+    def stop(self):
+        print "Stopping.."
+        self.group.callRemote('Reset')
+
+ap = AvahiPublish()
+reactor.callWhenRunning(ap.start)
+reactor.addSystemEventTrigger('before', 'shutdown', ap.stop)
+reactor.run()
