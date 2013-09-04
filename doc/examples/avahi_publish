@@ -3,56 +3,72 @@
 from twisted.internet import reactor, defer
 from txdbus import client
 
-name = "Avahi Interface Test"
-port = 12345
-stype = "_avahitest._tcp"
-domain = ""
-host = ""
-text = ["hello=world"]
     
-class AvahiPublish():
+class AvahiServicePublisher (object):
 
     avahi_bus_name    = 'org.freedesktop.Avahi'
     avahi_object_path = '/'
+
+    def __init__(self):
+        self._services = dict()
+        self._client   = None
+        self._server   = None
     
     @defer.inlineCallbacks
-    def start(self):
+    def publish_service(self, name, service_type, port, txt_data=[], domain='', host=''):
+
+        if self._client is None:
+            self._client = yield client.connect(reactor, 'system')
+
+        if self._server is None:
+            self._server = yield self._client.getRemoteObject( self.avahi_bus_name,
+                                                               self.avahi_object_path )
         
-        con = yield client.connect(reactor, 'system')
-        
-        # Get a handle to the server
-        server = yield con.getRemoteObject( self.avahi_bus_name,
-                                            self.avahi_object_path )
-        
-        # Create a new entry group -> Get back path to objects
-        group_path = yield server.callRemote('EntryGroupNew')
+        # Create a new entry group and retrieve the path to the new object
+        group_path = yield self._server.callRemote('EntryGroupNew')
         
         # Get entry group object
-        self.group = yield con.getRemoteObject( self.avahi_bus_name,
-                                                group_path )
+        group = yield self._client.getRemoteObject( self.avahi_bus_name,
+                                                    group_path )
 
-        # The D-Bus interfaces requires the text strings to be arrays of byte arrays
-        encoded_text = [ [ord(c) for c in s] for s in text ]
+        # The D-Bus interface requires the text strings to be arrays of arrays of bytes
+        encoded_txt = [ [ord(c) for c in s] for s in txt_data ]
+
+        # Use the group's AddService method to register the service
+        yield group.callRemote('AddService',
+                               -1, # interface: -1 is IF_UNSPEC
+                               -1, # protocol:  -1 is PROTO_UNSPEC
+                               0,  # flags
+                               name, service_type, domain, host, port,
+                               encoded_txt)
+        
+        # Commit the changes
+        yield group.callRemote('Commit')
+
+        self._services[ name ] = group
+        
+        
+    @defer.inlineCallbacks
+    def stop_publishing(self, name):
+        if name in self._services:
+            yield self._services[name].callRemote('Reset')
+
             
-        # Finally call the add service method
-        self.group.callRemote('AddService',
-                              -1, # IF_UNSPEC
-                              -1, # PROTO_UNSPEC
-                              0,
-                              name, stype, domain, host, port,
-                              encoded_text)
-        
-        # and commit the changes
-        self.group.callRemote('Commit')
-        
-        print "Avahi service has been published..."
-        
-        
-    def stop(self):
-        print "Stopping.."
-        self.group.callRemote('Reset')
+@defer.inlineCallbacks
+def demo():
+    name         = 'Avahi Publish Example'
+    service_type = '_avahidemo._tcp'
+    port         = 12345
+    txt_data     = ['hello=world']
 
-ap = AvahiPublish()
-reactor.callWhenRunning(ap.start)
-reactor.addSystemEventTrigger('before', 'shutdown', ap.stop)
+    asp = AvahiServicePublisher()
+
+    yield asp.publish_service(name, service_type, port, txt_data)
+
+    print "Publishing Avahi service:", name
+
+    reactor.addSystemEventTrigger('before', 'shutdown', lambda : asp.stop_publishing(name))
+
+
+reactor.callWhenRunning(demo)
 reactor.run()
