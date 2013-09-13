@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-VERSION     = '1.0.5'
+VERSION     = '1.0.6'
 DESCRIPTION = 'Tx DBus'
 
 try:
