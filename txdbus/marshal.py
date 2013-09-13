@@ -244,10 +244,27 @@ def sigFromPy( pobj ):
     elif isinstance(pobj, basestring): return 's'
     
     elif isinstance(pobj,       list):
-        return 'a' + sigFromPy(pobj[0])
+        vtype = type(pobj[0])
+        same = True
+        for v in pobj[1:]:
+            if not vtype is type(v):
+                same = False
+        if same:
+            return 'a' + sigFromPy(pobj[0])
+        else:
+            return 'av'
     
     elif isinstance(pobj,       dict):
-        return 'a{' + sigFromPy(pobj.keys()[0]) + sigFromPy(pobj.values()[0]) + '}'
+        values = pobj.values()
+        same = True
+        vtype = type(values[0])
+        for v in values[1:]:
+            if not vtype is type(v):
+                same = False
+        if same:
+            return 'a{' + sigFromPy(pobj.keys()[0]) + sigFromPy(pobj.values()[0]) + '}'
+        else:
+            return 'a{' + sigFromPy(pobj.keys()[0]) + 'v}'
     
     else:
         raise MarshallingError('Invalid Python type for variant: ' + repr(pobj))
