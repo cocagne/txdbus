@@ -82,6 +82,9 @@ class ClientAuthenticator (object):
         if self.authMech == 'DBUS_COOKIE_SHA1':
             self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
                                  binascii.hexlify(getpass.getuser()))
+        elif self.authMech == 'ANONYMOUS':
+            self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
+                                 binascii.hexlify("txdbus"))
         else:
             self.sendAuthMessage('AUTH ' + self.authMech)
 
