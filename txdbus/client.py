@@ -509,7 +509,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
 
             return d
         except Exception, e:
-            return defer.fail(e)
+            return defer.fail()
 
 
     def _onMethodTimeout(self, serial, d):
