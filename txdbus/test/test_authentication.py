@@ -61,7 +61,7 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.are( 'AUTH DBUS_COOKIE_SHA1 ' + tohex('testuser'))
         self.send('REJECTED')
         self.ae(self.ca.authMech, 'ANONYMOUS')
-        self.are( 'AUTH ANONYMOUS')
+        self.are( 'AUTH ANONYMOUS 747864627573')
         self.assertRaises(DBusAuthenticationFailed, self.send, 'REJECTED')
 
 
@@ -73,7 +73,7 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.are( 'AUTH DBUS_COOKIE_SHA1 ' + tohex('testuser'))
         self.send('ERROR')
         self.ae(self.ca.authMech, 'ANONYMOUS')
-        self.are( 'AUTH ANONYMOUS')
+        self.are( 'AUTH ANONYMOUS 747864627573')
 
     def test_ok(self):
         self.assertRaises(DBusAuthenticationFailed, self.send, 'OK')
