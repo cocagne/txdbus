@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 VERSION     = '1.0.9'
-DESCRIPTION = 'Tx DBus'
+DESCRIPTION = 'A native Python implementation of the DBus protocol for Twisted applications'
 
 try:
     from setuptools import setup
