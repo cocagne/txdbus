@@ -709,7 +709,7 @@ class DBusObjectHandler (object):
         """
         
         o = self.exports[ objectPath ]
-        del self.exports
+        del self.exports[ objectPath ]
 
         i = [ iface.name for iface in o.getInterfaces() ]
 

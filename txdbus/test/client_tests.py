@@ -242,6 +242,7 @@ class ObjectManagerTest(SimpleObjectTester):
 
         tif = DBusInterface( 'org.txdbus.trial.SimpleSub',
                              Method('testMethodSub', arguments='s', returns='s' ),
+                             Method('foo', returns='s' ),
                              Signal('tsig', 's'),
                              Property('prop', 'i')
                              )
@@ -253,6 +254,9 @@ class ObjectManagerTest(SimpleObjectTester):
         def __init__(self, object_path, arg=-1):
             objects.DBusObject.__init__(self, object_path)
             self.prop = arg
+
+        def dbus_foo(self):
+            return 'foo'
 
             
     def test_get_managed_objects(self):
@@ -296,6 +300,42 @@ class ObjectManagerTest(SimpleObjectTester):
         dp.addCallback(got_reply)
 
         return dp
+
+    @defer.inlineCallbacks
+    def test_unexport_objects(self):
+        t1 = self.TestClass('/org/test/Foo',     0)
+        t2 = self.TestClass('/org/test/Foo/Bar', 1)
+        t3 = self.TestClass('/org/test/Foo/Baz', 2)
+
+        self.server_conn.exportObject(t1)
+        self.server_conn.exportObject(t2)
+        self.server_conn.exportObject(t3)
+
+        conn = yield self.get_client_connection()
+        ro1  = yield conn.getRemoteObject(self.tst_bus, '/org/test/Foo')
+        ro2  = yield conn.getRemoteObject(self.tst_bus, '/org/test/Foo/Bar')
+
+        f1 = yield ro1.callRemote('foo')
+        f2 = yield ro2.callRemote('foo')
+        
+        self.assertEquals( f1, 'foo' )
+        self.assertEquals( f2, 'foo' ) 
+                
+        self.server_conn.unexportObject('/org/test/Foo')
+
+        f2 = yield ro2.callRemote('foo')
+        self.assertEquals( f2, 'foo' ) 
+
+        try:
+            f1 = yield ro1.callRemote('foo')
+            self.fail('failed throw exception')
+        except error.RemoteError, e:
+            self.assertEquals(e.message, '/org/test/Foo is not an object provided by this process.')
+        except Exception:
+            self.fail('Threw wrong exception')
+        
+
+        
 
     def test_interface_added_signal(self):
         dsig = defer.Deferred()
