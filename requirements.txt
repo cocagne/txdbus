@@ -1,0 +1,2 @@
+twisted>=10.1
+six

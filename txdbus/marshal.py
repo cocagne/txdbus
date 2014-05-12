@@ -6,6 +6,8 @@ Provides data marshalling to and from the DBus wire format
 
 import struct
 import re
+import six
+import codecs
 
 from txdbus.error import MarshallingError
 
@@ -161,14 +163,14 @@ def validateInterfaceName( n ):
             raise Exception('Names contains a character outside the set [A-Za-z0-9_.]')
         if dot_digit_re.search(n):
             raise Exception('No components of an interface name may begin with a digit')
-    except Exception, e:
+    except Exception as e:
         raise MarshallingError('Invalid interface name "%s": %s' % (n, str(e)))
 
 
 def validateErrorName( n ):
     try:
         validateInterfaceName( n )
-    except MarshallingError, e:
+    except MarshallingError as e:
         raise MarshallingError( str(e).replace( 'interface', 'error', 1 ) )
 
     
@@ -195,7 +197,7 @@ def validateBusName( n ):
             raise Exception('Names contains a character outside the set [A-Za-z0-9_.\-:]')
         if not n[0] == ':' and dot_digit_re.search(n):
             raise Exception('No coponents of an interface name may begin with a digit')
-    except Exception, e:
+    except Exception as e:
         raise MarshallingError('Invalid bus name "%s": %s' % (n, str(e)))
 
     
@@ -216,7 +218,7 @@ def validateMemberName( n ):
             raise Exception('Names may not begin with a digit')
         if mbr_re.search(n):
             raise Exception('Names contains a character outside the set [A-Za-z0-9_]')
-    except Exception, e:
+    except Exception as e:
         raise MarshallingError('Invalid member name "%s": %s' % (n, str(e)))
 
     
@@ -239,9 +241,9 @@ def sigFromPy( pobj ):
         return sig
     
     elif isinstance(pobj,        int): return 'i'
-    elif isinstance(pobj,       long): return 'x'
+    elif isinstance(pobj, six.integer_types): return 'x'
     elif isinstance(pobj,      float): return 'd'
-    elif isinstance(pobj, basestring): return 's'
+    elif isinstance(pobj, six.string_types): return 's'
     
     elif isinstance(pobj,       list):
         vtype = type(pobj[0])
@@ -255,16 +257,17 @@ def sigFromPy( pobj ):
             return 'av'
     
     elif isinstance(pobj,       dict):
-        values = pobj.values()
         same = True
-        vtype = type(values[0])
-        for v in values[1:]:
-            if not vtype is type(v):
+        vtype = None
+        for k,v in six.iteritems(pobj):
+            if vtype is None:
+                vtype = type(v)
+            elif not vtype is type(v):
                 same = False
         if same:
-            return 'a{' + sigFromPy(pobj.keys()[0]) + sigFromPy(pobj.values()[0]) + '}'
+            return 'a{' + sigFromPy(k) + sigFromPy(v) + '}'
         else:
-            return 'a{' + sigFromPy(pobj.keys()[0]) + 'v}'
+            return 'a{' + sigFromPy(k) + 'v}'
     
     else:
         raise MarshallingError('Invalid Python type for variant: ' + repr(pobj))
@@ -276,14 +279,14 @@ def sigFromPy( pobj ):
 #    - All data types must be padded to the correct alignment
 #    - All padding bytes must be nul
 #
-padding = { 0 : '\0' * 0,
-            1 : '\0' * 1,
-            2 : '\0' * 2,
-            3 : '\0' * 3,
-            4 : '\0' * 4,
-            5 : '\0' * 5,
-            6 : '\0' * 6,
-            7 : '\0' * 7 }
+padding = { 0 : b'\0' * 0,
+            1 : b'\0' * 1,
+            2 : b'\0' * 2,
+            3 : b'\0' * 3,
+            4 : b'\0' * 4,
+            5 : b'\0' * 5,
+            6 : b'\0' * 6,
+            7 : b'\0' * 7 }
 
 def genpad( align ):
     return lambda x : padding[ x % align and (align - x%align) or 0 ]
@@ -339,7 +342,7 @@ def genCompleteTypes( compoundSig ):
         elif c == 'a':
             start = i
             g = genCompleteTypes( compoundSig[i+1:] )
-            ct = g.next()
+            ct = six.next(g)
             i += len(ct)
             yield 'a' + ct
             
@@ -418,11 +421,12 @@ def marshal_double( ct, var, start_byte, lendian ):
 #       3 - terminating nul byte
 #
 def marshal_string( ct, var, start_byte, lendian ):
-    if not isinstance(var, basestring):
+    if not isinstance(var, six.string_types):
         raise MarshallingError('Required string. Received: ' + repr(var))
     if var.find('\0') != -1:
         raise MarshallingError('Embedded nul characters are not allowed within DBus strings')
-    return 4 + len(var) + 1, [ struct.pack( lendian and '<I' or '>I', len(var)), var, '\0' ]
+    var = codecs.encode(var, 'utf-8')
+    return 4 + len(var) + 1, [ struct.pack( lendian and '<I' or '>I', len(var)), var, b'\0' ]
 
 
 # OBJECT_PATH:
@@ -443,7 +447,8 @@ def marshal_object_path( ct, var, start_byte, lendian ):
 #       3 - terminating nul byte
 def marshal_signature( ct, var, start_byte, lendian ):
     # XXX validate signature
-    return 2 + len(var), [struct.pack(lendian and '<B' or '>B', len(var)), var, '\0']
+    var = codecs.encode(var, 'ascii')
+    return 2 + len(var), [struct.pack(lendian and '<B' or '>B', len(var)), var, b'\0']
 
 
 # ARRAY:
@@ -469,7 +474,7 @@ def marshal_array( ct, var, start_byte, lendian ):
     if isinstance(var, (list, tuple)):
         arr_list = var
     elif isinstance(var, dict):
-        arr_list = [ tpl for tpl in var.iteritems() ]
+        arr_list = [ tpl for tpl in six.iteritems(var) ]
     else:
         raise MarshallingError('List, Tuple, or Dictionary required for DBus array. Received: ' + repr(var))
 
@@ -655,7 +660,8 @@ def unmarshal_double(ct, data, offset, lendian):
 #
 def unmarshal_string(ct, data, offset, lendian):
     slen = struct.unpack_from( lendian and '<I' or '>I', data, offset)[0]
-    return 4 + slen + 1, data[ offset + 4 :  offset + 4 + slen ]
+    s = codecs.decode(data[ offset + 4 :  offset + 4 + slen ], 'utf-8')
+    return 4 + slen + 1, s
     
 
 # OBJECT_PATH:
@@ -674,7 +680,8 @@ unmarshal_object_path = unmarshal_string
 #       3 - terminating nul byte
 def unmarshal_signature(ct, data, offset, lendian):
     slen = struct.unpack_from( lendian and '<B' or '>B', data, offset)[0]
-    return 1 + slen + 1, data[ offset + 1 : offset + 1 + slen ]
+    s = codecs.decode(data[ offset + 1 : offset + 1 + slen ], 'ascii')
+    return 1 + slen + 1, s
     
 
 # ARRAY:
