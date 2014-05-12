@@ -1,5 +1,6 @@
 import unittest
 from struct import pack
+import six
 
 import txdbus.marshal as m
 
@@ -31,7 +32,8 @@ class SigFromPyTests(unittest.TestCase):
         self.t(1,'i')
 
     def test_long(self):
-        self.t(long(1),'x')
+        if six.PY2:
+            self.t(long(1),'x')
 
     def test_float(self):
         self.t(1.0,'d')
@@ -71,19 +73,19 @@ class SigFromPyTests(unittest.TestCase):
 class AlignmentTests(unittest.TestCase):
 
     def test_no_padding(self):
-        self.assertEquals( m.pad['y']( 1 ), '' )
+        self.assertEquals( m.pad['y']( 1 ), b'' )
 
     def test_2align(self):
-        self.assertEquals( m.pad['n']( 1 ), '\0')
+        self.assertEquals( m.pad['n']( 1 ), b'\0')
 
     def test_8align(self):
-        self.assertEquals( m.pad['t']( 1 ), '\0'*7)
+        self.assertEquals( m.pad['t']( 1 ), b'\0'*7)
 
     def test_0align(self):
-        self.assertEquals( m.pad['t']( 8 ), '')
+        self.assertEquals( m.pad['t']( 8 ), b'')
 
     def test_mid_align(self):
-        self.assertEquals( m.pad['t']( 4 ), '\0'*4)
+        self.assertEquals( m.pad['t']( 4 ), b'\0'*4)
 
 
         
@@ -123,7 +125,7 @@ class TestMarshal(unittest.TestCase):
         if not isinstance(var_list, list):
             var_list = [var_list]
         nbytes, chunks = m.marshal( sig, var_list, 0, little_endian  )
-        bin_str = ''.join(chunks)
+        bin_str = b''.join(chunks)
         self.assertEquals( nbytes, len(expected_encoding), "Byte length mismatch. Expected %d. Got %d" % (len(expected_encoding), nbytes) )
         self.assertEquals( bin_str, expected_encoding, "Binary encoding differs from expected value" )
         
@@ -132,7 +134,7 @@ class TestMarshal(unittest.TestCase):
 class TestSimpleMarshal(TestMarshal):
     
     def test_byte(self):
-        self.check( 'y', 1, chr(1) )
+        self.check( 'y', 1, b'\x01' )
 
     def test_int16(self):
         self.check( 'n', -1024, pack('h', -1024))
@@ -159,19 +161,19 @@ class TestSimpleMarshal(TestMarshal):
         self.check( 'b', True, pack('i',1))
 
     def test_string(self):
-        self.check( 's', 'Hello World', pack('i12s', 11, 'Hello World'))
+        self.check( 's', 'Hello World', pack('i12s', 11, b'Hello World'))
 
     def test_string_wrong_type(self):
         self.assertRaises(m.MarshallingError, self.check, 's', 1, '')
 
     def test_string_embedded_null(self):
-        self.assertRaises(m.MarshallingError, self.check, 's', 'Hello\0World', '')
+        self.assertRaises(m.MarshallingError, self.check, 's', b'Hello\0World', '')
 
     def test_signature1(self):
-        self.check( 'g', 'i', pack('BcB', 1, 'i', 0) )
+        self.check( 'g', 'i', pack('BcB', 1, b'i', 0) )
 
     def test_signature2(self):
-        self.check( 'g', '(ii)', pack('B4sB', 4, '(ii)', 0) )
+        self.check( 'g', '(ii)', pack('B4sB', 4, b'(ii)', 0) )
 
     def test_endian(self):
         self.check( 'x', 70000, pack('>q', 70000), False)
@@ -191,7 +193,7 @@ class TestStructMarshal(TestMarshal):
         self.check('(yx)', [[1,70000]], pack('Bxxxxxxxq',1,70000))
 
     def test_string(self):
-        self.check('(ysy)', [[1, 'foo', 2]], pack('Bxxxi3sxB', 1, 3, 'foo', 2))
+        self.check('(ysy)', [[1, 'foo', 2]], pack('Bxxxi3sxB', 1, 3, b'foo', 2))
 
     def test_substruct(self):
         self.check('(y(ii)y)', [[1, [3,4], 2]], pack('BxxxxxxxiiB', 1, 3, 4, 2))
@@ -218,7 +220,7 @@ class TestArrayMarshal(TestMarshal):
         self.check('ay', [[1,2,3,4]], pack('iBBBB', 4, 1,2,3,4))
 
     def test_string(self):
-        self.check('as', [['x', 'foo']], pack('ii2sxxi4s', 16, 1, 'x', 3, 'foo'))
+        self.check('as', [['x', 'foo']], pack('ii2sxxi4s', 16, 1, b'x', 3, b'foo'))
 
     def test_struct(self):
         self.check('a(ii)', [[[1,2],[3,4]]], pack('ixxxxiiii', 16, 1,2,3,4))
@@ -232,7 +234,7 @@ class TestArrayMarshal(TestMarshal):
     def test_dict_strings(self):
         self.check('a{ss}',
                    [[('foo','bar'), ('x','y')]],
-                   pack('ixxxxi4si4si2sxxi2s', 30, 3, 'foo', 3, 'bar', 1, 'x', 1, 'y'))
+                   pack('ixxxxi4si4si2sxxi2s', 30, 3, b'foo', 3, b'bar', 1, b'x', 1, b'y'))
 
     def test_invalid_array(self):
         self.assertRaises(m.MarshallingError, self.check, 'a{yy}', 1, '')
@@ -241,7 +243,7 @@ class TestArrayMarshal(TestMarshal):
 class TestVariantMarshal(TestMarshal):
 
     def test_byte(self):
-        self.check('v', [1], pack('B2si', 1, 'i', 1))
+        self.check('v', [1], pack('B2si', 1, b'i', 1))
 
     def test_struct(self):
         class S:
@@ -252,7 +254,7 @@ class TestVariantMarshal(TestMarshal):
                 self.a = 1
                 self.b = 2
 
-        self.check('v', [S()], pack('B5sxxii', 4, '(ii)', 1,2))
+        self.check('v', [S()], pack('B5sxxii', 4, b'(ii)', 1,2))
 
 
 #-------------------------------------------------------------------------------
@@ -307,7 +309,7 @@ class TestUnmarshal(unittest.TestCase):
 class TestSimpleUnmarshal(TestUnmarshal):
     
     def test_byte(self):
-        self.check( 'y', 1, chr(1) )
+        self.check( 'y', 1, b'\1' )
 
     def test_int16(self):
         self.check( 'n', -1024, pack('h', -1024))
@@ -334,13 +336,13 @@ class TestSimpleUnmarshal(TestUnmarshal):
         self.check( 'b', True, pack('i',1))
 
     def test_string(self):
-        self.check( 's', 'Hello World', pack('i12s', 11, 'Hello World'))
+        self.check( 's', 'Hello World', pack('i12s', 11, b'Hello World'))
 
     def test_signature1(self):
-        self.check( 'g', 'i', pack('BcB', 1, 'i', 0) )
+        self.check( 'g', 'i', pack('BcB', 1, b'i', 0) )
 
     def test_signature2(self):
-        self.check( 'g', '(ii)', pack('B4sB', 4, '(ii)', 0) )
+        self.check( 'g', '(ii)', pack('B4sB', 4, b'(ii)', 0) )
 
 
         
@@ -358,7 +360,7 @@ class TestStructUnmarshal(TestUnmarshal):
         self.check('(yx)', [[1,70000]], pack('Bxxxxxxxq',1,70000))
 
     def test_string(self):
-        self.check('(ysy)', [[1, 'foo', 2]], pack('Bxxxi3sxB', 1, 3, 'foo', 2))
+        self.check('(ysy)', [[1, 'foo', 2]], pack('Bxxxi3sxB', 1, 3, b'foo', 2))
 
     def test_substruct(self):
         self.check('(y(ii)y)', [[1, [3,4], 2]], pack('BxxxxxxxiiB', 1, 3, 4, 2))
@@ -372,7 +374,7 @@ class TestArrayUnmarshal(TestUnmarshal):
         self.check('ay', [[1,2,3,4]], pack('iBBBB', 4, 1,2,3,4))
 
     def test_string(self):
-        self.check('as', [['x', 'foo']], pack('ii2sxxi4s', 16, 1, 'x', 3, 'foo'))
+        self.check('as', [['x', 'foo']], pack('ii2sxxi4s', 16, 1, b'x', 3, b'foo'))
 
     def test_struct(self):
         self.check('a(ii)', [[[1,2],[3,4]]], pack('ixxxxiiii', 16, 1,2,3,4))
@@ -386,7 +388,7 @@ class TestArrayUnmarshal(TestUnmarshal):
     def test_dict_strings(self):
         self.check('a{ss}',
                    [{'foo':'bar', 'x':'y'}],
-                   pack('ixxxxi4si4si2sxxi2s', 30, 3, 'foo', 3, 'bar', 1, 'x', 1, 'y'))
+                   pack('ixxxxi4si4si2sxxi2s', 30, 3, b'foo', 3, b'bar', 1, b'x', 1, b'y'))
 
     def test_bad_length(self):
         self.assertRaises(m.MarshallingError, self.check, 'a(ii)', [[[1,2],[3,4]]], pack('ixxxxiiii', 15, 1,2,3,4))
@@ -395,10 +397,10 @@ class TestArrayUnmarshal(TestUnmarshal):
 class TestVariantUnmarshal(TestUnmarshal):
 
     def test_byte(self):
-        self.check('v', [1], pack('B2si', 1, 'i', 1))
+        self.check('v', [1], pack('B2si', 1, b'i', 1))
 
     def test_struct(self):
-        self.check('v', [[1,2]], pack('B5sxxii', 4, '(ii)', 1,2))
+        self.check('v', [[1,2]], pack('B5sxxii', 4, b'(ii)', 1,2))
 
         
 

@@ -24,7 +24,8 @@ if 'DBUS_SESSION_BUS_ADDRESS' in os.environ:
     m = sys.modules[ __name__ ]
 
     for k,v in client_tests.__dict__.iteritems():
-        if isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester):
+        if isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester) \
+                    and v is not client_tests.ServerObjectTester:
             setattr(m, k, type(k, (NativeBusMixin, v, unittest.TestCase), dict()))
 
 
