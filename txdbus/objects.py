@@ -8,11 +8,9 @@ import inspect
 import weakref
 
 from twisted.internet import defer
-
-from zope.interface import Interface, implements
+from zope.interface import Interface, implementer
 
 from txdbus import interface, error, marshal, message, introspection
-
 
 
 def isSignatureValid( expected, received ):
@@ -352,6 +350,7 @@ class _IfaceCache(object):
         self.properties = dict()
 
 
+@implementer(IDBusObject)
 class DBusObject (object):
     """
     Straight-forward L{IDBusObject} implementation. This
@@ -368,7 +367,6 @@ class DBusObject (object):
                           added to the total interfaces the object supports.
     """
     
-    implements(IDBusObject)
 
     _objectHandler = None
 

@@ -11,7 +11,7 @@ import getpass
 import hashlib
 import binascii
 
-from   zope.interface import Interface, implements
+from   zope.interface import Interface, implementer
 
 from   txdbus.protocol import IDBusAuthenticator
 from   txdbus.error    import DBusAuthenticationFailed
@@ -19,6 +19,7 @@ from   txdbus.error    import DBusAuthenticationFailed
 from twisted.python import log
 
 
+@implementer(IDBusAuthenticator)
 class ClientAuthenticator (object):
     """
     Implements the client-side portion of the DBus authentication protocol.
@@ -26,8 +27,6 @@ class ClientAuthenticator (object):
     @ivar preference: List of authentication mechanisms to try in the preferred order
     @type preference: List of C{string}
     """
-
-    implements(IDBusAuthenticator)
 
     preference = ['EXTERNAL', 'DBUS_COOKIE_SHA1', 'ANONYMOUS']
     
@@ -217,15 +216,14 @@ class IBusAuthenticationMechanism (Interface):
         Informs the authentication mechanism that the current authentication
         has been canceled and that cleanup is in order
         """
-        
 
 
+@implementer(IBusAuthenticationMechanism)
 class BusCookieAuthenticator (object):
     """
     Implements the Bus-side portion of the DBUS_COOKIE_SHA1 authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
 
     
     cookieContext = 'org_twisteddbus_ctx' + str(os.getpid())
@@ -439,15 +437,15 @@ class BusCookieAuthenticator (object):
             if os.geteuid() == 0:
                 os.chown(self.lock_file, self.uid, self.gid)
             
-            os.rename(self.lock_file, self.cookie_file) 
-        
+            os.rename(self.lock_file, self.cookie_file)
 
+
+@implementer(IBusAuthenticationMechanism)
 class BusExternalAuthenticator (object):
     """
     Implements the Bus-side portion of the EXTERNAL authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
 
     def __init__(self):
         self.ok = False
@@ -477,13 +475,13 @@ class BusExternalAuthenticator (object):
         pass
 
 
+@implementer(IBusAuthenticationMechanism)
 class BusAnonymousAuthenticator (object):
     """
     Implements the Bus-side portion of the ANONYMOUS authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
-    
+
     def getMechanismName(self):
         return 'ANONYMOUS'
 
@@ -498,8 +496,9 @@ class BusAnonymousAuthenticator (object):
 
     def cancel(self):
         pass
-    
 
+
+@implementer(IDBusAuthenticator)
 class BusAuthenticator (object):
     """
     Implements the Bus-side portion of the DBus authentication protocol.
@@ -508,8 +507,6 @@ class BusAuthenticator (object):
                           implementation classes
     @type authenticators: C{dict}
     """
-
-    implements(IDBusAuthenticator)
 
     MAX_REJECTS_ALLOWED = 5
 
