@@ -508,7 +508,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             d.addCallback( self._cbCvtReply, returnSignature )
 
             return d
-        except Exception, e:
+        except Exception as e:
             return defer.fail()
 
 

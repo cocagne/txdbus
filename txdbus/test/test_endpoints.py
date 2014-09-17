@@ -30,7 +30,7 @@ class EndpointsTester(unittest.TestCase):
         try:
             endpoints.getDBusEnvEndpoints(reactor)
             self.assertTrue(False)
-        except Exception, e:
+        except Exception as e:
             self.assertEquals(str(e), 'DBus Session environment variable not set')
 
     def xtest_env_session(self):

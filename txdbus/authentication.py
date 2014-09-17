@@ -137,7 +137,7 @@ class ClientAuthenticator (object):
                 reply = client_challenge + ' ' + response
                 
                 self.sendAuthMessage( 'DATA ' + binascii.hexlify(reply))
-            except Exception, e:
+            except Exception as e:
                 log.msg('DBUS Cookie authentication failed: ' + str(e))
                 self.sendAuthMessage('ERROR ' + str(e))
 
@@ -268,7 +268,7 @@ class BusCookieAuthenticator (object):
                 return self._step_two( arg )
             else:
                 raise Exception()
-        except Exception, e:
+        except Exception as e:
             return ('REJECTED', None)
 
         

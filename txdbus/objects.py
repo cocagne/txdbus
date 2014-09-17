@@ -882,7 +882,7 @@ class DBusObjectHandler (object):
 
                 try:
                     marshal.validateErrorName( name )
-                except error.MarshallingError, e:
+                except error.MarshallingError as e:
                     errMsg = ('!!(Invalid error name "%s")!! ' % name) + errMsg
                     name   = 'org.txdbus.InvalidErrorName'
 

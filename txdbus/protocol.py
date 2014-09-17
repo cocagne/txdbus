@@ -172,7 +172,7 @@ class BasicDBusProtocol(protocol.Protocol):
                             self.setAuthenticationSucceeded()
                             if self._buffer:
                                 self.dataReceived('')
-                    except error.DBusAuthenticationFailed, e:
+                    except error.DBusAuthenticationFailed as e:
                         log.msg('DBus Authentication failed: ' + str(e))
                         self.transport.loseConnection()
             else:
