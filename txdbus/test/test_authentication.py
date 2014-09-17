@@ -101,11 +101,11 @@ class ClientAuthenticatorTester(unittest.TestCase):
         fn  = os.path.join(k, ctx)
         
         try:
-            os.mkdir(k,0777)
+            os.mkdir(k, 0o0777)
             self.ca.cookie_dir = k
             
             self.assertRaises(Exception, self.ca._authGetDBusCookie, None, None)
-            os.chmod(k,0700)
+            os.chmod(k, 0o0700)
 
             self.ca.cookie_dir = '/etc'
             self.assertRaises(Exception, self.ca._authGetDBusCookie, None, None)
@@ -165,7 +165,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         t   = tempfile.mkdtemp()
         k   = os.path.join(t,'keyring')
         try:
-            os.mkdir(k,0777)
+            os.mkdir(k, 0o0777)
 
             self.ar(self.s1(0,k))
         finally:

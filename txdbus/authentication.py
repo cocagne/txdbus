@@ -162,7 +162,7 @@ class ClientAuthenticator (object):
 
         dstat = os.stat(cookie_dir)
 
-        if dstat.st_mode & 066:
+        if dstat.st_mode & 0o066:
             raise Exception('User keyrings directory is writeable by other users. Aborting authentication')
 
         import pwd
@@ -303,11 +303,11 @@ class BusCookieAuthenticator (object):
         
         try:
             s = os.lstat(dk)
-            if not os.path.isdir(dk) or s.st_mode & 0066:
+            if not os.path.isdir(dk) or s.st_mode & 0o0066:
                 # Invalid keyrings directory. Something fishy is going on
                 return ('REJECTED', None)
         except OSError:
-            old_un = os.umask(0077)
+            old_un = os.umask(0o0077)
             os.mkdir(dk)
             os.umask(old_un)
             if os.geteuid() == 0:
@@ -356,16 +356,16 @@ class BusCookieAuthenticator (object):
         self.lock_file = self.cookie_file + '.lock'
         try:
             lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                             | os.O_WRONLY, 0600)
+                                             | os.O_WRONLY, 0o0600)
         except:
             time.sleep(0.01)
             try:
                 lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                                 | os.O_WRONLY, 0600)
+                                                 | os.O_WRONLY, 0o0600)
             except:
                 os.unlink(self.lock_file)
                 lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                                 | os.O_WRONLY, 0600)
+                                                 | os.O_WRONLY, 0o0600)
 
         return lockfd
 
