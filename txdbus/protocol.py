@@ -68,7 +68,7 @@ class BasicDBusProtocol(protocol.Protocol):
     @ivar authenticator: Class used to authenticate connections
     @type authenticator: Class implementing L{IDBusAuthenticator}
     """
-    _buffer         = ''
+    _buffer         = b''
     _authenticated  = False
     _nextMsgLen     = 0
     _endian         = '<'
@@ -76,7 +76,7 @@ class BasicDBusProtocol(protocol.Protocol):
     _firstByte      = True
     _unix_creds     = None # (pid, uid, gid) from UnixSocket credential passing
     authenticator   = None # Class to handle DBus authentication
-    authDelimiter   = '\r\n'
+    authDelimiter   = b'\r\n'
     MAX_AUTH_LENGTH = 16384
     MAX_MSG_LENGTH  = 2**27
     MSG_HDR_LEN     = 16 # including 4-byte padding for array of structure
@@ -91,7 +91,7 @@ class BasicDBusProtocol(protocol.Protocol):
         if self._client:
             # DBus specification requires that clients send a null byte upon connection
             # to the bus
-            self.transport.write('\0')
+            self.transport.write(b'\0')
 
 
         if self._client:
@@ -110,7 +110,7 @@ class BasicDBusProtocol(protocol.Protocol):
             buffer_len = len(self._buffer)
             
             if self._nextMsgLen == 0 and buffer_len >= 16:
-                if self._buffer[0] != 'l':
+                if self._buffer[:1] != b'l':
                     self._endian = '>'
 
                 body_len = struct.unpack(self._endian + 'I', self._buffer[4:8]  )[0]
@@ -133,7 +133,7 @@ class BasicDBusProtocol(protocol.Protocol):
                 
                 if self._buffer:
                     # Recursively process any other complete messages
-                    self.dataReceived('')
+                    self.dataReceived(b'')
         else:
             if not self._client and self._firstByte:
                 if not data[0] == '\0':
@@ -171,7 +171,7 @@ class BasicDBusProtocol(protocol.Protocol):
                             self._dbusAuth = None
                             self.setAuthenticationSucceeded()
                             if self._buffer:
-                                self.dataReceived('')
+                                self.dataReceived(b'')
                     except error.DBusAuthenticationFailed as e:
                         log.msg('DBus Authentication failed: ' + str(e))
                         self.transport.loseConnection()

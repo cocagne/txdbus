@@ -28,7 +28,7 @@ class ClientAuthenticator (object):
     @type preference: List of C{string}
     """
 
-    preference = ['EXTERNAL', 'DBUS_COOKIE_SHA1', 'ANONYMOUS']
+    preference = [b'EXTERNAL', b'DBUS_COOKIE_SHA1', b'ANONYMOUS']
     
     def beginAuthentication(self, protocol):
         self.authenticated = False
@@ -38,21 +38,21 @@ class ClientAuthenticator (object):
 
         self.authOrder = self.preference[:]
         self.authOrder.reverse()
-        
+
         self.authTryNextMethod()
         
 
     def handleAuthMessage(self, line):
-        if not ' ' in line:
+        if not b' ' in line:
             cmd = line
-            args = ''
+            args = b''
         else:
-            cmd, args = line.split(' ',1)
-        m = getattr(self, '_auth_' + cmd, None)
+            cmd, args = line.split(b' ', 1)
+        m = getattr(self, '_auth_' + cmd.decode(), None)
         if m:
-            m( args )
+            m(args)
         else:
-            raise DBusAuthenticationFailed('Invalid DBus authentcation protocol message: ' + line)
+            raise DBusAuthenticationFailed('Invalid DBus authentication protocol message: ' + line)
 
 
     def authenticationSucceeded(self):
@@ -76,16 +76,16 @@ class ClientAuthenticator (object):
         if not self.authOrder:
             raise DBusAuthenticationFailed()
         
-        self.authMech  = self.authOrder.pop()
+        self.authMech = self.authOrder.pop()
             
-        if self.authMech == 'DBUS_COOKIE_SHA1':
-            self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
-                                 binascii.hexlify(getpass.getuser()))
-        elif self.authMech == 'ANONYMOUS':
-            self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
-                                 binascii.hexlify("txdbus"))
+        if self.authMech == b'DBUS_COOKIE_SHA1':
+            self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
+                                 binascii.hexlify(getpass.getuser().encode()))
+        elif self.authMech == b'ANONYMOUS':
+            self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
+                                 binascii.hexlify("txdbus".encode()))
         else:
-            self.sendAuthMessage('AUTH ' + self.authMech)
+            self.sendAuthMessage(b'AUTH ' + self.authMech)
 
                     
     def _auth_REJECTED(self, line):
@@ -103,7 +103,7 @@ class ClientAuthenticator (object):
         except:
             raise DBusAuthenticationFailed('Invalid guid in OK message')
         else:
-            self.sendAuthMessage('BEGIN')
+            self.sendAuthMessage(b'BEGIN')
             self.authenticated = True
         
 
@@ -113,10 +113,10 @@ class ClientAuthenticator (object):
     
     def _auth_DATA(self, line):
         
-        if self.authMech == 'EXTERNAL':
-            self.sendAuthMessage('DATA')
+        if self.authMech == b'EXTERNAL':
+            self.sendAuthMessage(b'DATA')
             
-        elif self.authMech == 'DBUS_COOKIE_SHA1':
+        elif self.authMech == b'DBUS_COOKIE_SHA1':
             try:
                 data = binascii.unhexlify( line.strip() )
                 
@@ -127,18 +127,18 @@ class ClientAuthenticator (object):
                 client_challenge = binascii.hexlify(hashlib.sha1(
                                                     os.urandom(8)).digest())
 
-                response = '%s:%s:%s' % (server_challenge,
-                                         client_challenge,
-                                         server_cookie)
+                response = b':'.join([server_challenge,
+                                      client_challenge,
+                                      server_cookie])
 
                 response = binascii.hexlify(hashlib.sha1(response).digest())
 
-                reply = client_challenge + ' ' + response
+                reply = client_challenge + b' ' + response
                 
-                self.sendAuthMessage( 'DATA ' + binascii.hexlify(reply))
+                self.sendAuthMessage(b'DATA ' + binascii.hexlify(reply))
             except Exception as e:
                 log.msg('DBUS Cookie authentication failed: ' + str(e))
-                self.sendAuthMessage('ERROR ' + str(e))
+                self.sendAuthMessage(b'ERROR ' + str(e).encode())
 
     def _auth_ERROR(self, line):
         log.msg('Authentication mechanism failed: ' + line)
@@ -541,14 +541,14 @@ class BusAuthenticator (object):
 
     def handleAuthMessage(self, line):
         #print 'RCV: ', line.rstrip()
-        if not ' ' in line:
+        if not b' ' in line:
             cmd = line
-            args = ''
+            args = b''
         else:
-            cmd, args = line.split(' ',1)
-        m = getattr(self, '_auth_' + cmd, None)
+            cmd, args = line.split(b' ', 1)
+        m = getattr(self, '_auth_' + cmd.decode(), None)
         if m:
-            m( args )
+            m(args)
         else:
             self.sendError('"Unknown command"')
 
