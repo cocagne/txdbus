@@ -4,6 +4,7 @@ to interested connections.
 
 @author: Tom Cocagne
 """
+import six
 from twisted.python import log
 
 # XXX Replace this simple, inefficient implementation with something a bit smarter
@@ -113,7 +114,7 @@ class MessageRouter (object):
 
     def routeMessage(self, m):
         #print 'ROUTING MSG', m.interface, m.member
-        for r in self._rules.itervalues():
+        for r in six.itervalues(self._rules):
             r.match( m )
 
                     

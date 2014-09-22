@@ -208,7 +208,7 @@ class Bus (objects.DBusObject):
                 self.sendMessage( msg )
 
             self.router.routeMessage(msg)
-        except DError, e:
+        except DError as e:
             sig  = None
             body = None
             if e.errorMessage:
@@ -341,7 +341,7 @@ class Bus (objects.DBusObject):
 
         try:
             marshal.validateBusName(name)
-        except error.MarshallingError, e:
+        except error.MarshallingError as e:
             raise DError('org.freedesktop.DBus.Error.InvalidArgs', str(e))
 
 

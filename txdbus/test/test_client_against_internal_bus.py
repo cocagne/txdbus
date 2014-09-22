@@ -52,7 +52,7 @@ class InternalBusMixin (object):
 # "Copy" the objects unit tests into this module
 m = sys.modules[ __name__ ]
 
-print 'Internal bus tests are currently broken... skipping'
+print('Internal bus tests are currently broken... skipping')
 #for k,v in client_tests.__dict__.iteritems():
 #    if isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester):
 #        setattr(m, k, type(k, (InternalBusMixin, v, unittest.TestCase), dict()))

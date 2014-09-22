@@ -3,7 +3,7 @@ Provides support for DBus introspection
 
 @author: Tom Cocagne
 """
-import cStringIO
+from six.moves import cStringIO
 import xml.sax
 import xml.sax.handler
 
@@ -101,7 +101,7 @@ def getInterfacesFromXML( xmlStr, replaceKnownInterfaces = False ):
     p.setFeature(xml.sax.handler.feature_validation, False)
     p.setFeature(xml.sax.handler.feature_external_ges, False)
     p.setContentHandler(handler)
-    p.parse( cStringIO.StringIO(xmlStr) )
+    p.parse(cStringIO(xmlStr))
 
     return handler.interfaces
 

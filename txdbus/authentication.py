@@ -11,7 +11,7 @@ import getpass
 import hashlib
 import binascii
 
-from   zope.interface import Interface, implements
+from   zope.interface import Interface, implementer
 
 from   txdbus.protocol import IDBusAuthenticator
 from   txdbus.error    import DBusAuthenticationFailed
@@ -19,6 +19,7 @@ from   txdbus.error    import DBusAuthenticationFailed
 from twisted.python import log
 
 
+@implementer(IDBusAuthenticator)
 class ClientAuthenticator (object):
     """
     Implements the client-side portion of the DBus authentication protocol.
@@ -27,9 +28,7 @@ class ClientAuthenticator (object):
     @type preference: List of C{string}
     """
 
-    implements(IDBusAuthenticator)
-
-    preference = ['EXTERNAL', 'DBUS_COOKIE_SHA1', 'ANONYMOUS']
+    preference = [b'EXTERNAL', b'DBUS_COOKIE_SHA1', b'ANONYMOUS']
     
     def beginAuthentication(self, protocol):
         self.authenticated = False
@@ -39,21 +38,21 @@ class ClientAuthenticator (object):
 
         self.authOrder = self.preference[:]
         self.authOrder.reverse()
-        
+
         self.authTryNextMethod()
         
 
     def handleAuthMessage(self, line):
-        if not ' ' in line:
+        if not b' ' in line:
             cmd = line
-            args = ''
+            args = b''
         else:
-            cmd, args = line.split(' ',1)
-        m = getattr(self, '_auth_' + cmd, None)
+            cmd, args = line.split(b' ', 1)
+        m = getattr(self, '_auth_' + cmd.decode(), None)
         if m:
-            m( args )
+            m(args)
         else:
-            raise DBusAuthenticationFailed('Invalid DBus authentcation protocol message: ' + line)
+            raise DBusAuthenticationFailed('Invalid DBus authentication protocol message: ' + line)
 
 
     def authenticationSucceeded(self):
@@ -77,16 +76,16 @@ class ClientAuthenticator (object):
         if not self.authOrder:
             raise DBusAuthenticationFailed()
         
-        self.authMech  = self.authOrder.pop()
+        self.authMech = self.authOrder.pop()
             
-        if self.authMech == 'DBUS_COOKIE_SHA1':
-            self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
-                                 binascii.hexlify(getpass.getuser()))
-        elif self.authMech == 'ANONYMOUS':
-            self.sendAuthMessage('AUTH ' + self.authMech + ' ' +
-                                 binascii.hexlify("txdbus"))
+        if self.authMech == b'DBUS_COOKIE_SHA1':
+            self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
+                                 binascii.hexlify(getpass.getuser().encode()))
+        elif self.authMech == b'ANONYMOUS':
+            self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
+                                 binascii.hexlify("txdbus".encode()))
         else:
-            self.sendAuthMessage('AUTH ' + self.authMech)
+            self.sendAuthMessage(b'AUTH ' + self.authMech)
 
                     
     def _auth_REJECTED(self, line):
@@ -104,7 +103,7 @@ class ClientAuthenticator (object):
         except:
             raise DBusAuthenticationFailed('Invalid guid in OK message')
         else:
-            self.sendAuthMessage('BEGIN')
+            self.sendAuthMessage(b'BEGIN')
             self.authenticated = True
         
 
@@ -114,10 +113,10 @@ class ClientAuthenticator (object):
     
     def _auth_DATA(self, line):
         
-        if self.authMech == 'EXTERNAL':
-            self.sendAuthMessage('DATA')
+        if self.authMech == b'EXTERNAL':
+            self.sendAuthMessage(b'DATA')
             
-        elif self.authMech == 'DBUS_COOKIE_SHA1':
+        elif self.authMech == b'DBUS_COOKIE_SHA1':
             try:
                 data = binascii.unhexlify( line.strip() )
                 
@@ -128,18 +127,18 @@ class ClientAuthenticator (object):
                 client_challenge = binascii.hexlify(hashlib.sha1(
                                                     os.urandom(8)).digest())
 
-                response = '%s:%s:%s' % (server_challenge,
-                                         client_challenge,
-                                         server_cookie)
+                response = b':'.join([server_challenge,
+                                      client_challenge,
+                                      server_cookie])
 
                 response = binascii.hexlify(hashlib.sha1(response).digest())
 
-                reply = client_challenge + ' ' + response
+                reply = client_challenge + b' ' + response
                 
-                self.sendAuthMessage( 'DATA ' + binascii.hexlify(reply))
-            except Exception, e:
+                self.sendAuthMessage(b'DATA ' + binascii.hexlify(reply))
+            except Exception as e:
                 log.msg('DBUS Cookie authentication failed: ' + str(e))
-                self.sendAuthMessage('ERROR ' + str(e))
+                self.sendAuthMessage(b'ERROR ' + str(e).encode())
 
     def _auth_ERROR(self, line):
         log.msg('Authentication mechanism failed: ' + line)
@@ -162,7 +161,7 @@ class ClientAuthenticator (object):
 
         dstat = os.stat(cookie_dir)
 
-        if dstat.st_mode & 066:
+        if dstat.st_mode & 0o066:
             raise Exception('User keyrings directory is writeable by other users. Aborting authentication')
 
         import pwd
@@ -217,15 +216,14 @@ class IBusAuthenticationMechanism (Interface):
         Informs the authentication mechanism that the current authentication
         has been canceled and that cleanup is in order
         """
-        
 
 
+@implementer(IBusAuthenticationMechanism)
 class BusCookieAuthenticator (object):
     """
     Implements the Bus-side portion of the DBUS_COOKIE_SHA1 authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
 
     
     cookieContext = 'org_twisteddbus_ctx' + str(os.getpid())
@@ -268,7 +266,7 @@ class BusCookieAuthenticator (object):
                 return self._step_two( arg )
             else:
                 raise Exception()
-        except Exception, e:
+        except Exception as e:
             return ('REJECTED', None)
 
         
@@ -303,11 +301,11 @@ class BusCookieAuthenticator (object):
         
         try:
             s = os.lstat(dk)
-            if not os.path.isdir(dk) or s.st_mode & 0066:
+            if not os.path.isdir(dk) or s.st_mode & 0o0066:
                 # Invalid keyrings directory. Something fishy is going on
                 return ('REJECTED', None)
         except OSError:
-            old_un = os.umask(0077)
+            old_un = os.umask(0o0077)
             os.mkdir(dk)
             os.umask(old_un)
             if os.geteuid() == 0:
@@ -356,16 +354,16 @@ class BusCookieAuthenticator (object):
         self.lock_file = self.cookie_file + '.lock'
         try:
             lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                             | os.O_WRONLY, 0600)
+                                             | os.O_WRONLY, 0o0600)
         except:
             time.sleep(0.01)
             try:
                 lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                                 | os.O_WRONLY, 0600)
+                                                 | os.O_WRONLY, 0o0600)
             except:
                 os.unlink(self.lock_file)
                 lockfd = os.open(self.lock_file, os.O_CREAT | os.O_EXCL
-                                                 | os.O_WRONLY, 0600)
+                                                 | os.O_WRONLY, 0o0600)
 
         return lockfd
 
@@ -439,15 +437,15 @@ class BusCookieAuthenticator (object):
             if os.geteuid() == 0:
                 os.chown(self.lock_file, self.uid, self.gid)
             
-            os.rename(self.lock_file, self.cookie_file) 
-        
+            os.rename(self.lock_file, self.cookie_file)
 
+
+@implementer(IBusAuthenticationMechanism)
 class BusExternalAuthenticator (object):
     """
     Implements the Bus-side portion of the EXTERNAL authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
 
     def __init__(self):
         self.ok = False
@@ -477,13 +475,13 @@ class BusExternalAuthenticator (object):
         pass
 
 
+@implementer(IBusAuthenticationMechanism)
 class BusAnonymousAuthenticator (object):
     """
     Implements the Bus-side portion of the ANONYMOUS authentication
     mechanism
     """
-    implements(IBusAuthenticationMechanism)
-    
+
     def getMechanismName(self):
         return 'ANONYMOUS'
 
@@ -498,8 +496,9 @@ class BusAnonymousAuthenticator (object):
 
     def cancel(self):
         pass
-    
 
+
+@implementer(IDBusAuthenticator)
 class BusAuthenticator (object):
     """
     Implements the Bus-side portion of the DBus authentication protocol.
@@ -508,8 +507,6 @@ class BusAuthenticator (object):
                           implementation classes
     @type authenticators: C{dict}
     """
-
-    implements(IDBusAuthenticator)
 
     MAX_REJECTS_ALLOWED = 5
 
@@ -544,14 +541,14 @@ class BusAuthenticator (object):
 
     def handleAuthMessage(self, line):
         #print 'RCV: ', line.rstrip()
-        if not ' ' in line:
+        if not b' ' in line:
             cmd = line
-            args = ''
+            args = b''
         else:
-            cmd, args = line.split(' ',1)
-        m = getattr(self, '_auth_' + cmd, None)
+            cmd, args = line.split(b' ', 1)
+        m = getattr(self, '_auth_' + cmd.decode(), None)
         if m:
-            m( args )
+            m(args)
         else:
             self.sendError('"Unknown command"')
 

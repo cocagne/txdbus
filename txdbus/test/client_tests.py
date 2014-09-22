@@ -9,10 +9,10 @@
 # an optional mixin class for setting up the internal bus.
 #
 
-import os
-import sys
+from __future__ import print_function
 
-from twisted.internet.protocol import Factory
+import os
+
 from twisted.internet import reactor, defer
 
 from txdbus import objects, endpoints, bus, error, client, introspection
@@ -329,7 +329,7 @@ class ObjectManagerTest(SimpleObjectTester):
         try:
             f1 = yield ro1.callRemote('foo')
             self.fail('failed throw exception')
-        except error.RemoteError, e:
+        except error.RemoteError as e:
             self.assertEquals(e.message, '/org/test/Foo is not an object provided by this process.')
         except Exception:
             self.fail('Threw wrong exception')
@@ -490,8 +490,8 @@ class SimpleTest(SimpleObjectTester):
             self.assertTrue( reply is None )
 
         def on_error(err):
-            print '***** GOT TIMEOUT ******', err.getErrorMessage()
-            print '    ', err.value
+            print('***** GOT TIMEOUT ******', err.getErrorMessage())
+            print('    ', err.value)
             self.assertTrue( isinstance(err.value, error.TimeOut), 'Did not receive a timeout' )
 
         d = self.get_proxy()
@@ -1059,8 +1059,8 @@ class ErrorTester(ServerObjectTester):
 
     def _test_bad(self):
         def on_err( e ):
-            print str(e.value)
-            print str(e.value.message)
+            print(str(e.value))
+            print(str(e.value.message))
             self.assertTrue(True)
 
         d = self.client_conn.callRemote( '/org/freedesktop/DBus', 'RequestName',
@@ -1486,7 +1486,7 @@ class InterfaceTester(ServerObjectTester):
             self.assertEquals(err.getErrorMessage(), 'Introspection failed to find interfaces: org.txdbus.INVALID_INTERFACE' )
 
         def got(v):
-            print 'GOT: ', v
+            print('GOT: ', v)
 
         d = self.get_proxy()
         d.addCallback( got_object )
@@ -1513,7 +1513,7 @@ class InterfaceTester(ServerObjectTester):
             try:
                 self.t.emitSignal('InvalidSignalName')
                 self.assertTrue(False, 'Should have raised an exception')
-            except AttributeError, e:
+            except AttributeError as e:
                 self.assertEquals(str(e), 'Signal "InvalidSignalName" not found in any supported interface.')        
 
         return self.proxy_chain(got_object)
