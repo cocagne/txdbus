@@ -44,11 +44,17 @@ class SigFromPyTests(unittest.TestCase):
     def test_list(self):
         self.t([1],'ai')
 
+    def test_tuple(self):
+        self.t((1,),'ai')
+
     def test_list_multiple_elements_same_type(self):
         self.t([1,2],'ai')
 
     def test_list_of_variants(self):
         self.t([1,'2'],'av')
+
+    def test_tuple(self):
+        self.t(('foo',1),'(si)')
 
     def test_dict(self):
         self.t(dict(foo=1),'a{si}')
