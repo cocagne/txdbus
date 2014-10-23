@@ -255,6 +255,9 @@ def sigFromPy( pobj ):
             return 'a' + sigFromPy(pobj[0])
         else:
             return 'av'
+
+    elif isinstance(pobj,       tuple):
+        return '(' + ''.join(sigFromPy(e) for e in pobj) + ')'
     
     elif isinstance(pobj,       dict):
         same = True
