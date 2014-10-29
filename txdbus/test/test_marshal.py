@@ -44,9 +44,6 @@ class SigFromPyTests(unittest.TestCase):
     def test_list(self):
         self.t([1],'ai')
 
-    def test_tuple(self):
-        self.t((1,),'ai')
-
     def test_list_multiple_elements_same_type(self):
         self.t([1,2],'ai')
 
