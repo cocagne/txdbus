@@ -244,6 +244,7 @@ def sigFromPy( pobj ):
     elif isinstance(pobj, six.integer_types): return 'x'
     elif isinstance(pobj,      float): return 'd'
     elif isinstance(pobj, six.string_types): return 's'
+    elif isinstance(pobj, bytearray): return 'ay'
     
     elif isinstance(pobj,       list):
         vtype = type(pobj[0])
@@ -474,12 +475,12 @@ def marshal_array( ct, var, start_byte, lendian ):
         start_byte += len(initial_padding)
         chunks.append( initial_padding )
 
-    if isinstance(var, (list, tuple)):
+    if isinstance(var, (list, tuple, bytearray)):
         arr_list = var
     elif isinstance(var, dict):
         arr_list = [ tpl for tpl in six.iteritems(var) ]
     else:
-        raise MarshallingError('List, Tuple, or Dictionary required for DBus array. Received: ' + repr(var))
+        raise MarshallingError('List, Tuple, Bytearray, or Dictionary required for DBus array. Received: ' + repr(var))
 
     for item in arr_list:
 
