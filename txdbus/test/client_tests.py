@@ -915,6 +915,42 @@ class SignalTester(ServerObjectTester):
         dsig.addCallback(check_result)
 
         return dsig
+
+    def test_arg_rule_remove_match(self):
+        dsig = defer.Deferred()
+
+        x = dict(rule_id=None)
+        
+        def on_signal( result ):
+            dsig.callback( result )
+            
+        d = self.client_conn.addMatch( on_signal,
+                                       mtype     = 'signal',
+                                       sender    = self.tst_bus,
+                                       arg       = [(0,'Signal arg: MATCH')])
+
+        def added(rule_id):
+            x['rule_id'] = rule_id
+            return self.get_proxy()
+
+        d.addCallback( added )
+        
+        def on_proxy( ro ):            
+            return ro.callRemote('sendSignal', 'MATCH')
+
+        d.addCallback(on_proxy)
+
+        def check_result( result ):
+            self.assertEquals( result.body[0], 'Signal arg: MATCH' )
+
+        dsig.addCallback(check_result)
+
+        def remove(_):
+            return self.client_conn.delMatch(x['rule_id'])
+
+        dsig.addCallback( remove )
+
+        return dsig
     
 
     

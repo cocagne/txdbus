@@ -58,6 +58,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
         has completed successfully.
         """
         self.router        = router.MessageRouter()
+        self.match_rules   = dict()
         self.objHandler    = objects.DBusObjectHandler(self)
         self._pendingCalls = dict() # serial_number => (deferred, delayed_timeout_cb | None)
         self._dcCallbacks  = list()
@@ -178,9 +179,21 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
         """
         Removes a message matching rule previously registered with addMatch
         """
-        self.router.delMatch(rule_id)
-        # XXX : inform the DBus daemon of the removal (need to take multiple
-        # registrations into account?)
+        rule = self.match_rules[rule_id]
+        
+        d = self.callRemote('/org/freedesktop/DBus', 'RemoveMatch',
+                            interface   = 'org.freedesktop.DBus',
+                            destination = 'org.freedesktop.DBus',
+                            body        = [rule],
+                            signature   = 's')
+
+        def ok(_):
+            del self.match_rules[rule_id]
+            self.router.delMatch(rule_id)
+
+        d.addCallback(ok)
+
+        return d
 
         
     def addMatch(self, callback, mtype=None, sender=None, interface=None,
@@ -230,9 +243,11 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
                             signature   = 's')
 
         def ok(_):
-            return self.router.addMatch(callback, mtype, sender, interface,
-                                        member, path, path_namespace, destination,
-                                        arg, arg_path, arg0namespace)
+            rule_id = self.router.addMatch(callback, mtype, sender, interface,
+                                           member, path, path_namespace, destination,
+                                           arg, arg_path, arg0namespace)
+            self.match_rules[rule_id] = rule
+            return rule_id
 
         d.addCallbacks( ok )
 
