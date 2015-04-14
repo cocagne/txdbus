@@ -21,14 +21,13 @@ def show_desktop_notification( duration, message ):
                                     message,
                                     [], dict(),
                                     duration * 1000)
-    
+
 
 def main():
     d = show_desktop_notification( 5, "Hello World!" )
-    
+
     d.addCallback( lambda _: reactor.stop() )
 
 
 reactor.callWhenRunning(main)
 reactor.run()
-
