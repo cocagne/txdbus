@@ -110,8 +110,12 @@ class BasicDBusProtocol(protocol.Protocol):
             buffer_len = len(self._buffer)
             
             if self._nextMsgLen == 0 and buffer_len >= 16:
+                # There would be multiple clients using different endians.
+                # Reset endian every time.
                 if self._buffer[:1] != b'l':
                     self._endian = '>'
+                else:
+                    self._endian = '<'
 
                 body_len = struct.unpack(self._endian + 'I', self._buffer[4:8]  )[0]
                 harr_len = struct.unpack(self._endian + 'I', self._buffer[12:16])[0]
