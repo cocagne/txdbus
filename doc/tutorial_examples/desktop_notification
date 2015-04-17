@@ -6,7 +6,7 @@ from txdbus import error, client
 @defer.inlineCallbacks
 def show_desktop_notification( duration, message ):
     '''
-    Shows the message as a desktop nofification for the specified
+    Shows the message as a desktop notification for the specified
     number of seconds
     '''
     con = yield client.connect(reactor, 'session')
@@ -21,14 +21,13 @@ def show_desktop_notification( duration, message ):
                                     message,
                                     [], dict(),
                                     duration * 1000)
-    
+
 
 def main():
     d = show_desktop_notification( 5, "Hello World!" )
-    
+
     d.addCallback( lambda _: reactor.stop() )
 
 
 reactor.callWhenRunning(main)
 reactor.run()
-

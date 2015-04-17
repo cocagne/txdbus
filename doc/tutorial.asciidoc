@@ -89,7 +89,7 @@ from txdbus import error, client
 @defer.inlineCallbacks
 def show_desktop_notification( duration, message ):
     '''
-    Shows the message as a desktop nofification for the specified
+    Shows the message as a desktop notification for the specified
     number of seconds
     '''
     con = yield client.connect(reactor, 'session')
