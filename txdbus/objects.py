@@ -207,7 +207,7 @@ class RemoteDBusObject (object):
             if self._signalRules is None:
                 self._signalRules = set()
                 
-                self._signalRules.add( rule_id )
+            self._signalRules.add( rule_id )
 
             return rule_id
 
