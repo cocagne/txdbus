@@ -45,7 +45,7 @@ class SigFromPyTests(unittest.TestCase):
         self.t([1],'ai')
 
     def test_bytearray(self):
-        self.t(bytearray('\xAA\xAA'), 'ay')
+        self.t(bytearray(six.b('\xAA\xAA')), 'ay')
 
     def test_list_multiple_elements_same_type(self):
         self.t([1,2],'ai')
@@ -226,7 +226,7 @@ class TestArrayMarshal(TestMarshal):
         self.check('ay', [[1,2,3,4]], pack('iBBBB', 4, 1,2,3,4))
 
     def test_byte_bytearray(self):
-        self.check('ay', bytearray('\xaa\xaa'), pack('iBB', 2, 170, 170))
+        self.check('ay', bytearray(six.b('\xaa\xaa')), pack('iBB', 2, 170, 170))
 
     def test_string(self):
         self.check('as', [['x', 'foo']], pack('ii2sxxi4s', 16, 1, b'x', 3, b'foo'))
@@ -266,7 +266,7 @@ class TestVariantMarshal(TestMarshal):
         self.check('v', [S()], pack('B5sxxii', 4, b'(ii)', 1,2))
 
     def test_bytearray(self):
-        self.check('v', bytearray('\xAA\xAA'), pack('B2siBB', 2, 'ay', 2, 170, 170))
+        self.check('v', bytearray(six.b('\xAA\xAA')), pack('B2siBB', 2, six.b('ay'), 2, 170, 170))
 
 
 #-------------------------------------------------------------------------------
