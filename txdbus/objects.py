@@ -766,25 +766,14 @@ class DBusObjectHandler (object):
 
             self.conn.sendMessage( r )
             return
-        
-        #Try to get object from complete object path
-        o = self.exports.get(msg.path, None)
 
         if msg.interface == 'org.freedesktop.DBus.Introspectable' and (
             msg.member == 'Introspect'):
             
-            xml = None
-            
-            if o is not None:
-                #We have an object, so extract full introspection XML from it
-                xml = introspection.generateIntrospectionXML( o.getObjectPath(),
-                                                              o.getInterfaces() )
-            else:
-                #We have no object, perhaps this is a partial path
-                xml = introspection.generateIntrospectionXMLForPartialPath( msg.path, 
-                                                                            self.exports.keys())
-            
-            if xml is not None:    
+            xml = introspection.generateIntrospectionXML(msg.path,
+                                                         self.exports)
+
+            if xml is not None:
                 r = message.MethodReturnMessage( msg.serial,
                                                  body        = [ xml ],
                                                  destination = msg.sender,
@@ -794,6 +783,8 @@ class DBusObjectHandler (object):
                 
                 return
 
+        #Try to get object from complete object path
+        o = self.exports.get(msg.path, None)
         if o is None:
             self._send_err( msg, 'org.freedesktop.DBus.Error.UnknownObject',
                             '%s is not an object provided by this process.' %

@@ -28,51 +28,41 @@ _intro = '''  <interface name="org.freedesktop.DBus.Introspectable">
     </method>
   </interface>'''
 
-def generateIntrospectionXMLForPartialPath( objectPath, objectPathList):
+def generateIntrospectionXML( objectPath, exportedObjects ):
     """
-    Generates the introspection XML for a partial object path
-    that matches any of the delivered object paths in the list
-    
-    This method was introduced to make any DBus Service created with txdbus
-    behave in a way that d-feet, for example, expects
-    
+    Generates the introspection XML for an object path or partial object path
+    that matches exported objects.
+
+    This allows for browsing the exported objects with tools such as d-feet.
+
     @rtype: C{string}
     """
-    
+    l = [_dtd_decl]
+    l.append('<node name="%s">' % (objectPath,))
+
+    obj = exportedObjects.get(objectPath, None)
+    if obj is not None:
+        for i in obj.getInterfaces():
+            l.append(i.introspectionXml)
+        l.append(_intro)
+
     # make sure objectPath ends with '/' to only get partial matches based on
     # the full path, not a part of a subpath
     if not objectPath.endswith('/'):
         objectPath += '/'
-    
-    # collect all objectpaths that match with this partial path
-    # and immediately only collect the part of the path after the match
-    # and get only the first part of the path that remains (partition)
-    matches = [path[len(objectPath):].partition('/')[0] 
-               for path in objectPathList 
-               if path.startswith(objectPath)]
-    if len(matches) == 0:
+    matches = []
+    for path in exportedObjects.keys():
+        if path.startswith(objectPath):
+            path = path[len(objectPath):].partition('/')[0]
+            if path not in matches:
+                matches.append(path)
+
+    if obj is None and not matches:
         return None
-    
-    l = [_dtd_decl]
-    l.append('<node name="%s">' % (objectPath,))
+
     for m in matches:
-        #insert only first part of path
         l.append('<node name="%s"/>' % m )
-    l.append('</node>')
-    return '\n'.join(l)
 
-def generateIntrospectionXML( objectPath, ifaceList ):
-    """
-    Generates the introspection XML for an object with the
-    supplied list of interfaces
-
-    @rtype: C{string}
-    """
-    l = [_dtd_decl]
-    l.append('<node name="%s">' % (objectPath,))
-    for i in ifaceList:
-        l.append( i.introspectionXml )
-    l.append(_intro)
     l.append('</node>')
     return '\n'.join(l)
 
