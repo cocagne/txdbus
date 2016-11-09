@@ -320,9 +320,10 @@ _hcode = { 1 : 'path',
            9 : 'unix_fds' }
 
 
-def parseMessage( rawMessage ):
+def parseMessage( rawMessage, oobFDs ):
     """
-    Parses the raw binary message and returns a L{DBusMessage} subclass
+    Parses the raw binary message and returns a L{DBusMessage} subclass.
+    Unmarshalling DBUS 'h' (UNIX_FD) gets the FDs from the oobFDs list.
 
     @type rawMessage: C{str}
     @param rawMessage: Raw binary message to parse
@@ -334,7 +335,7 @@ def parseMessage( rawMessage ):
 
     lendian = rawMessage[0] == b'l'[0]
     
-    nheader, hval = marshal.unmarshal(_headerFormat, rawMessage, 0, lendian)
+    nheader, hval = marshal.unmarshal(_headerFormat, rawMessage, 0, lendian, oobFDs)
 
     messageType = hval[1]
 
@@ -360,7 +361,7 @@ def parseMessage( rawMessage ):
             pass
         
     if m.signature:
-        nbytes, m.body = marshal.unmarshal(m.signature, m.rawBody, lendian = lendian)
+        nbytes, m.body = marshal.unmarshal(m.signature, m.rawBody, lendian = lendian, oobFDs=oobFDs)
 
     return m
 

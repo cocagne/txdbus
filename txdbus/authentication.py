@@ -103,12 +103,12 @@ class ClientAuthenticator (object):
         except:
             raise DBusAuthenticationFailed('Invalid guid in OK message')
         else:
-            self.sendAuthMessage(b'BEGIN')
-            self.authenticated = True
+            self.sendAuthMessage(b'NEGOTIATE_UNIX_FD')
         
 
     def _auth_AGREE_UNIX_FD(self, line):
-        log.msg('DBus Auth not implemented AGREE_UNIX_FD')
+        self.sendAuthMessage(b'BEGIN')
+        self.authenticated = True
         
     
     def _auth_DATA(self, line):
