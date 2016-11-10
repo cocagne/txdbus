@@ -73,6 +73,7 @@ class BasicDBusProtocol(protocol.Protocol):
     """
     _buffer         = b''
     _receivedFDs    = []
+    _toBeSentFDs    = []
     _authenticated  = False
     _nextMsgLen     = 0
     _endian         = '<'
@@ -239,6 +240,8 @@ class BasicDBusProtocol(protocol.Protocol):
         @param msg: A L{message.DBusMessage} instance to send over the connection
         """
         assert isinstance(msg, message.DBusMessage)
+        for fd in self._toBeSentFDs:
+            self.transport.sendFileDescriptor(fd)
         self.transport.write( msg.rawMessage )
         
     

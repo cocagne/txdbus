@@ -389,32 +389,37 @@ def genCompleteTypes( compoundSig ):
 #
 #
 
-def marshal_byte( ct, var, start_byte, lendian ):
+def marshal_byte( ct, var, start_byte, lendian, oobFDs ):
     return 1, [ struct.pack( lendian and '<B' or '>B', var) ]
 
-def marshal_boolean( ct, var, start_byte, lendian ):
+def marshal_boolean( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<I' or '>I', 1 if var else 0) ]
 
-def marshal_int16( ct, var, start_byte, lendian ):
+def marshal_int16( ct, var, start_byte, lendian, oobFDs ):
     return 2, [ struct.pack( lendian and '<h' or '>h', var) ]
 
-def marshal_uint16( ct, var, start_byte, lendian ):
+def marshal_uint16( ct, var, start_byte, lendian, oobFDs ):
     return 2, [ struct.pack( lendian and '<H' or '>H', var) ]
 
-def marshal_int32( ct, var, start_byte, lendian ):
+def marshal_int32( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<i' or '>i', var) ]
 
-def marshal_uint32( ct, var, start_byte, lendian ):
+def marshal_uint32( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<I' or '>I', var) ]
 
-def marshal_int64( ct, var, start_byte, lendian ):
+def marshal_int64( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<q' or '>q', var) ]
 
-def marshal_uint64( ct, var, start_byte, lendian ):
+def marshal_uint64( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<Q' or '>Q', var) ]
 
-def marshal_double( ct, var, start_byte, lendian ):
+def marshal_double( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<d' or '>d', var) ]
+
+def marshal_unix_fd( ct, var, start_byte, lendian, oobFDs ):
+    index = len(oobFDs)
+    oobFDs.append(var)
+    return 4, [ struct.pack( lendian and '<I' or '>I', index) ]
 
 
 # STRING:
@@ -424,7 +429,7 @@ def marshal_double( ct, var, start_byte, lendian ):
 #       2 - string data (no embedded nuls)
 #       3 - terminating nul byte
 #
-def marshal_string( ct, var, start_byte, lendian ):
+def marshal_string( ct, var, start_byte, lendian, oobFDs ):
     if not isinstance(var, six.string_types):
         raise MarshallingError('Required string. Received: ' + repr(var))
     if var.find('\0') != -1:
@@ -436,9 +441,9 @@ def marshal_string( ct, var, start_byte, lendian ):
 # OBJECT_PATH:
 #    - Identical to string
 #    
-def marshal_object_path( ct, var, start_byte, lendian ):
+def marshal_object_path( ct, var, start_byte, lendian, oobFDs ):
     validateObjectPath(var)
-    return marshal_string( ct, var, start_byte, lendian )
+    return marshal_string( ct, var, start_byte, lendian, oobFDs )
 
 
 # SIGNATURE:
@@ -449,7 +454,7 @@ def marshal_object_path( ct, var, start_byte, lendian ):
 #       1 - Single byte length
 #       2 - Valid signature string
 #       3 - terminating nul byte
-def marshal_signature( ct, var, start_byte, lendian ):
+def marshal_signature( ct, var, start_byte, lendian, oobFDs ):
     # XXX validate signature
     var = codecs.encode(var, 'ascii')
     return 2 + len(var), [struct.pack(lendian and '<B' or '>B', len(var)), var, b'\0']
@@ -461,7 +466,7 @@ def marshal_signature( ct, var, start_byte, lendian ):
 #       1 - UINT32 length of array data (does not include alignment padding)
 #       2 - Padding to required alignment of contained data type
 #       3 - each array element
-def marshal_array( ct, var, start_byte, lendian ):
+def marshal_array( ct, var, start_byte, lendian, oobFDs ):
     chunks   = list()
     data_len = 0
     tsig     = ct[1:]   # strip of leading 'a'
@@ -491,7 +496,7 @@ def marshal_array( ct, var, start_byte, lendian ):
             data_len   += len(padding)
             chunks.append( padding )
         
-        nbytes, vchunks = marshallers[ tcode ]( tsig, item, start_byte, lendian )
+        nbytes, vchunks = marshallers[ tcode ]( tsig, item, start_byte, lendian, oobFDs )
 
         start_byte += nbytes
         data_len   += nbytes
@@ -508,8 +513,8 @@ def marshal_array( ct, var, start_byte, lendian ):
 #    - Must start on 8 byte boundary
 #    - Content consists of each field marshaled in sequence
 #
-def marshal_struct( ct, var, start_byte, lendian ):
-    return marshal( ct[1:-1], var, start_byte, lendian )
+def marshal_struct( ct, var, start_byte, lendian, oobFDs ):
+    return marshal( ct[1:-1], var, start_byte, lendian, oobFDs )
 
 
 marshal_dictionary = marshal_struct
@@ -521,13 +526,13 @@ marshal_dictionary = marshal_struct
 #       1 - Marshaled SIGNATURE
 #       2 - Any required padding to align the type specified in the signature
 #       3 - Marshaled value
-def marshal_variant( ct, var, start_byte, lendian ):
+def marshal_variant( ct, var, start_byte, lendian, oobFDs ):
     # XXX: ensure only a single, complete type is in the siguature
     bstart = start_byte
     
     vsig = sigFromPy(var)
     
-    nbytes, chunks = marshal_signature( ct, sigFromPy(var), start_byte, lendian )
+    nbytes, chunks = marshal_signature( ct, sigFromPy(var), start_byte, lendian, oobFDs )
 
     start_byte += nbytes
 
@@ -562,16 +567,19 @@ marshallers = { 'y' : marshal_byte,
                 '(' : marshal_struct,
                 'v' : marshal_variant,
                 '{' : marshal_dictionary,
-                'h' : marshal_uint32 }
+                'h' : marshal_unix_fd }
 
 
-def marshal( compoundSignature, variableList, startByte = 0, lendian=True ):
+def marshal(compoundSignature, variableList, startByte = 0, lendian=True, oobFDs=None):
     """
     Encodes the Python objects in variableList into the DBus wire-format
     matching the supplied compoundSignature. This function retuns a list of
     binary strings is rather than a single string to simplify the recursive
     marshalling algorithm. A single string may be easily obtained from the
     result via: ''.join(list_of_binary_strings)
+
+    Any UNIX_FD 'h' type is encoded per spec and the respective FD appended
+    to oobFDs which should be supplied as an empty list.
     
     @type compoundSignature: C{string}
     @param compoundSignature: DBus signature specifying the types of the
@@ -609,7 +617,7 @@ def marshal( compoundSignature, variableList, startByte = 0, lendian=True ):
             startByte += len(padding)
             chunks.append( padding )
         
-        nbytes, vchunks = marshallers[ tcode ]( ct, var, startByte, lendian )
+        nbytes, vchunks = marshallers[ tcode ]( ct, var, startByte, lendian, oobFDs )
 
         startByte += nbytes
         
