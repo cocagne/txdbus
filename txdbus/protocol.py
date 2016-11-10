@@ -254,6 +254,8 @@ class BasicDBusProtocol(protocol.Protocol):
         """
         m  = message.parseMessage( rawMsg, self._receivedFDs )
         mt = m._messageType
+
+        self._receivedFDs = []
             
         if mt == 1:
             self.methodCallReceived( m )
