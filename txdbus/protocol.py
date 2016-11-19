@@ -242,6 +242,7 @@ class BasicDBusProtocol(protocol.Protocol):
         assert isinstance(msg, message.DBusMessage)
         for fd in self._toBeSentFDs:
             self.transport.sendFileDescriptor(fd)
+        self._toBeSentFDs = []
         self.transport.write( msg.rawMessage )
         
     
