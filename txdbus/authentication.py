@@ -12,7 +12,6 @@ import hashlib
 import binascii
 
 from   zope.interface import Interface, implementer
-from   zope.interface.verify import verifyObject
 
 from   txdbus.protocol import IDBusAuthenticator
 from   txdbus.error    import DBusAuthenticationFailed
@@ -47,13 +46,10 @@ class ClientAuthenticator (object):
 
     def _usesUnixSocketTransport(self, protocol):
 
-        try:
-            result = verifyObject(interfaces.IUNIXTransport, protocol.transport)
-        except Exception:
-            # several possible exceptions: protocol may not have .transport,
-            # verifyObject raises different ones under different cases.
-            result = False
-        return result
+        return (
+            getattr(protocol, 'transport', None) and
+            interfaces.IUNIXTransport.providedBy(protocol.transport)
+        )
 
 
     def handleAuthMessage(self, line):
