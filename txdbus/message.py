@@ -86,18 +86,23 @@ class DBusMessage (object):
         if not self.autoStart:
             flags |= 0x2
         
+        # may be overriden below, depending on oobFDs
+        _headerAttrs = self._headerAttrs
+
         # marshal body before headers to know if the 'unix_fd' header is needed
         if self.signature:
             binBody = b''.join(marshal.marshal(self.signature, self.body, oobFDs=oobFDs)[1])
             if oobFDs:
-                self._headerAttrs.append(('unix_fds', 9, False))
+                # copy class based _headerAttrs to add a unix_fds header this time
+                _headerAttrs = list(self._headerAttrs)
+                _headerAttrs.append(('unix_fds', 9, False))
                 self.unix_fds = len(oobFDs)
         else:
             binBody = b''
 
         self.headers = list()
         
-        for attr_name, code, is_required in self._headerAttrs:
+        for attr_name, code, is_required in _headerAttrs:
             hval = getattr(self, attr_name, None)
             
             if hval is not None:
