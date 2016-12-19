@@ -31,6 +31,9 @@ class SigFromPyTests(unittest.TestCase):
     def test_int(self):
         self.t(1,'i')
 
+    def test_bool(self):
+        self.t(True,'b')
+
     def test_long(self):
         if six.PY2:
             self.t(long(1),'x')
