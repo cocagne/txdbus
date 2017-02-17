@@ -7,7 +7,7 @@ model's definition of Interfaces.
 """
 
 from txdbus import marshal
-
+from txdbus.py3_compat import mappings
 
 class Method (object):
     """
@@ -203,7 +203,7 @@ class DBusInterface (object):
             l = list()
             l.append('  <interface name="%s">' % (self.name,))
 
-            k = self.methods.keys()
+            k = mappings.keys(self.methods)
             k.sort()
             for m in ( self.methods[a] for a in k ):
                 l.append('    <method name="%s">' % (m.name,))
@@ -213,7 +213,7 @@ class DBusInterface (object):
                     l.append('      <arg direction="out" type="%s"/>' % (arg_sig,))
                 l.append('    </method>')
 
-            k = self.signals.keys()
+            k = mappings.keys(self.signals)
             k.sort()
             for s in ( self.signals[a] for a in k ):
                 l.append('    <signal name="%s">' % (s.name,))
@@ -221,7 +221,7 @@ class DBusInterface (object):
                     l.append('      <arg type="%s"/>' % (arg_sig,))
                 l.append('    </signal>')
 
-            k = self.properties.keys()
+            k = mappings.keys(self.properties)
             k.sort()
             for p in ( self.properties[a] for a in k ):
                 l.append('    <property name="%s" type="%s" access="%s">' % (p.name, p.sig, p.access,))
