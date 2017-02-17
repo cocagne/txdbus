@@ -11,6 +11,7 @@ from twisted.internet import defer
 from zope.interface import Interface, implementer
 
 from txdbus import interface, error, marshal, message, introspection
+from txdbus.py3_compat import mappings, functions
 
 
 def isSignatureValid( expected, received ):
@@ -403,7 +404,7 @@ class DBusObject (object):
             
                 cache = dict()
 
-                for name, obj in base.__dict__.iteritems():
+                for name, obj in mappings.iteritems(base.__dict__):
                     self._cacheInterfaces( base, cache, name, obj )
 
                 setattr(base, '_dbusIfaceCache', cache)
@@ -419,7 +420,7 @@ class DBusObject (object):
             return cache[ interface_name ]
         
         if inspect.isfunction(obj) and hasattr(obj, '_dbusInterface'):
-            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(cls, obj.func_name)
+            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(cls, functions.name(obj))
 
         elif isinstance(obj, DBusProperty):
 
@@ -592,7 +593,7 @@ class DBusObject (object):
                 ifc = cache.get( interfaceName, None )
 
                 if ifc:
-                    for p in ifc.properties.itervalues():
+                    for p in mappings.itervalues(ifc.properties):
                         addp( p )
                     break
 
