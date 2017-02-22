@@ -239,7 +239,8 @@ def sigFromPy( pobj ):
     
     if sig is not None:
         return sig
-    
+
+    elif isinstance(pobj, bool): return 'b'
     elif isinstance(pobj,        int): return 'i'
     elif isinstance(pobj, six.integer_types): return 'x'
     elif isinstance(pobj,      float): return 'd'
