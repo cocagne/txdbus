@@ -22,7 +22,7 @@ from txdbus import client
 @defer.inlineCallbacks
 def call_remote_verbose(obj, method, *args, **kwargs):
 
-    print('%s%s' % (method, args), end=' = ')
+    print('calling %s%s' % (method, args), end=' = ')
     result = yield obj.callRemote(method, *args, **kwargs)
     print(repr(result))
     defer.returnValue(result)
@@ -34,10 +34,14 @@ def main(reactor):
     PATH = '/path/to/FDObject'
     BUSN = 'org.example'
 
-    bus = yield client.connect(reactor)
-    print('connected to dbus')
-    object = yield bus.getRemoteObject(BUSN, PATH)
-    print('obtained remote object')
+    try:
+        bus = yield client.connect(reactor)
+        print('connected to dbus')
+        object = yield bus.getRemoteObject(BUSN, PATH)
+        print('obtained remote object')
+    except Exception as e:
+        print('failed obtaining remote object: %s' % (e,))
+        defer.returnValue(None)
 
     # Open this source file. Ask remote to read it and return byte count.
     with open(__file__, 'rb') as f:
@@ -47,19 +51,18 @@ def main(reactor):
     with open(__file__, 'rb') as f:
         yield call_remote_verbose(object, 'readBytesFD', f.fileno(), 10)
 
-    # IMPORTANT
-    # ---------
-    # The following call is commented because the current implementation
-    # fails at handling calls with more than one UNIX FD arument. The client
-    # call goes through, but the server side fails at receiving more than one FD.
-
-#    # Like the previous one - exercise passing two open UNIX FDs.
-#    with open(__file__, 'rb') as f1, open(__file__, 'rb') as f2:
-#        fd1 = f1.fileno()
-#        fd2 = f2.fileno()
-#        yield call_remote_verbose(object, 'readBytesTwoFDs', fd1, fd2, 5)
+    # Like before, now exercise passing two open UNIX FDs.
+    # (will not be available under Twisted < 17.1.0)
+    with open(__file__, 'rb') as f1, open(__file__, 'rb') as f2:
+        fd1 = f1.fileno()
+        fd2 = f2.fileno()
+        try:
+            yield call_remote_verbose(object, 'readBytesTwoFDs', fd1, fd2, 5)
+        except Exception as e:
+            print('remote call failed: %s' % (e,))
 
     bus.disconnect()
+    print('disconnected')
 
 
 if __name__ == '__main__':

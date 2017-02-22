@@ -16,7 +16,9 @@ requires the underlying transport to be a UNIX domain socket.
 from __future__ import print_function
 
 import os
+import sys
 
+import twisted
 from twisted.internet import reactor, defer
 
 from txdbus import client, objects, interface
@@ -25,7 +27,7 @@ from txdbus import client, objects, interface
 def trace_method_call(method):
 
     def wrapper(*args, **kwargs):
-        print('%s%s' % (method.__name__, args[1:]), end=' = ')
+        print('handling %s%r' % (method.__name__, args[1:]), end=' = ')
         result = method(*args, **kwargs)
         print(repr(result))
         return result
@@ -35,14 +37,11 @@ def trace_method_call(method):
 
 class FDObject(objects.DBusObject):
 
-    iface = interface.DBusInterface(
+    _methods = [
         'org.example.FDInterface',
         interface.Method('lenFD', arguments='h', returns='t'),
         interface.Method('readBytesFD', arguments='ht', returns='ay'),
-        interface.Method('readBytesTwoFDs', arguments='hht', returns='ay'),
-    )
-
-    dbusInterfaces = [iface]
+    ]
 
     @trace_method_call
     def dbus_lenFD(self, fd):
@@ -76,6 +75,21 @@ class FDObject(objects.DBusObject):
             f.close()
         return result
 
+    # Only export 'readBytesTwoFDs' if we're running Twisted >= 17.1.0 which
+    # is required to handle multiple UNIX FD arguments.
+
+    _minTxVersion = type(twisted.version)('twisted', 17, 1, 0)
+    if twisted.version >= _minTxVersion:
+        _methods.append(
+            interface.Method('readBytesTwoFDs', arguments='hht', returns='ay')
+        )
+    else:
+        print('Twisted version < %s, not exposing %r' % (_minTxVersion.base(),
+            'readBytesTwoFDs'))
+    del _minTxVersion
+
+    dbusInterfaces = [interface.DBusInterface(*_methods)]
+
 
 @defer.inlineCallbacks
 def main(reactor):
@@ -83,7 +97,13 @@ def main(reactor):
     PATH = '/path/to/FDObject'
     BUSN = 'org.example'
 
-    bus = yield client.connect(reactor)
+    try:
+        bus = yield client.connect(reactor)
+    except Exception as e:
+        print('failed connecting to dbus: %s' % (e,))
+        reactor.stop()
+        defer.returnValue(None)
+
     print('connected to dbus')
     object = FDObject(PATH)
     bus.exportObject(object)
