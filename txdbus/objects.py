@@ -7,11 +7,11 @@ DBus objects
 import inspect
 import weakref
 
+import six
 from twisted.internet import defer
 from zope.interface import Interface, implementer
 
 from txdbus import interface, error, marshal, message, introspection
-from txdbus.py3_compat import mappings, functions
 
 
 def isSignatureValid( expected, received ):
@@ -404,7 +404,7 @@ class DBusObject (object):
             
                 cache = dict()
 
-                for name, obj in mappings.iteritems(base.__dict__):
+                for name, obj in six.iteritems(base.__dict__):
                     self._cacheInterfaces( base, cache, name, obj )
 
                 setattr(base, '_dbusIfaceCache', cache)
@@ -420,7 +420,9 @@ class DBusObject (object):
             return cache[ interface_name ]
         
         if inspect.isfunction(obj) and hasattr(obj, '_dbusInterface'):
-            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(cls, functions.name(obj))
+            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(
+                cls, obj.__name__
+            )
 
         elif isinstance(obj, DBusProperty):
 
@@ -593,7 +595,7 @@ class DBusObject (object):
                 ifc = cache.get( interfaceName, None )
 
                 if ifc:
-                    for p in mappings.itervalues(ifc.properties):
+                    for p in six.itervalues(ifc.properties):
                         addp( p )
                     break
 

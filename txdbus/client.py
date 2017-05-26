@@ -10,6 +10,7 @@ over the DBus bus.
 import os
 import sys
 
+import six
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Factory
 from twisted.internet.error import ConnectError
@@ -18,8 +19,6 @@ import txdbus.protocol
 
 from txdbus import authentication, message, objects, introspection, router
 from txdbus import error
-
-from txdbus.py3_compat import types
 
 
 # Constant return values for requestBusName
@@ -596,7 +595,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             e.message = ''
             e.values  = []
             if merr.body:
-                if isinstance(merr.body[0], types.anystring):
+                if isinstance(merr.body[0], six.string_types):
                     e.message = merr.body[0]
                 e.values = merr.body
             d.errback( e )
