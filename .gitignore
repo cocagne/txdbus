@@ -4,3 +4,4 @@ _trial_temp*
 *\.html
 dist
 MANIFEST
+.tox
