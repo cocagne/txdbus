@@ -10,6 +10,7 @@ over the DBus bus.
 import os
 import sys
 
+import six
 from twisted.internet import reactor, defer
 from twisted.internet.protocol import Factory
 from twisted.internet.error import ConnectError
@@ -594,7 +595,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             e.message = ''
             e.values  = []
             if merr.body:
-                if isinstance(merr.body[0], basestring):
+                if isinstance(merr.body[0], six.string_types):
                     e.message = merr.body[0]
                 e.values = merr.body
             d.errback( e )
