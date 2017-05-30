@@ -7,6 +7,7 @@ DBus objects
 import inspect
 import weakref
 
+import six
 from twisted.internet import defer
 from zope.interface import Interface, implementer
 
@@ -403,7 +404,7 @@ class DBusObject (object):
             
                 cache = dict()
 
-                for name, obj in base.__dict__.iteritems():
+                for name, obj in six.iteritems(base.__dict__):
                     self._cacheInterfaces( base, cache, name, obj )
 
                 setattr(base, '_dbusIfaceCache', cache)
@@ -419,7 +420,9 @@ class DBusObject (object):
             return cache[ interface_name ]
         
         if inspect.isfunction(obj) and hasattr(obj, '_dbusInterface'):
-            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(cls, obj.func_name)
+            get_ic( obj._dbusInterface ).methods[ obj._dbusMethod ] = getattr(
+                cls, obj.__name__
+            )
 
         elif isinstance(obj, DBusProperty):
 
@@ -592,7 +595,7 @@ class DBusObject (object):
                 ifc = cache.get( interfaceName, None )
 
                 if ifc:
-                    for p in ifc.properties.itervalues():
+                    for p in six.itervalues(ifc.properties):
                         addp( p )
                     break
 
