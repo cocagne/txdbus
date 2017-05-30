@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-VERSION     = '1.0.13'
+VERSION     = '1.0.14'
 DESCRIPTION = 'A native Python implementation of the DBus protocol for Twisted applications'
 
 try:
