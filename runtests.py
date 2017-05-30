@@ -2,11 +2,7 @@
 
 import os
 import sys
-
-if sys.version_info[:2] >= (2,7):
-    from unittest import TestLoader, TextTestRunner, TestSuite
-else:
-    from unittest2 import TestLoader, TextTestRunner, TestSuite
+from unittest import TestLoader, TestSuite, TextTestRunner
 
 topdir = os.path.split(os.path.abspath(__file__))[0]
 os.chdir(topdir)

@@ -9,8 +9,6 @@
 # an optional mixin class for setting up the internal bus.
 #
 
-from __future__ import print_function
-
 import os
 
 from twisted.internet import reactor, defer
