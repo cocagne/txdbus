@@ -503,7 +503,7 @@ class DBusObject (object):
         if len(args) >= 1 and args[-1] == 'dbusCaller':
             needs_caller = True
 
-        method_obj.im_func._dbusCaller = needs_caller
+        method_obj.__func__._dbusCaller = needs_caller
         
         
     def executeMethod(self, interfaceObj, methodName, methodArguments, sender):
