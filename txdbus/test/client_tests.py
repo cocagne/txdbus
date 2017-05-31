@@ -2114,18 +2114,18 @@ class UnixFDArgumentsTester(ServerObjectTester):
     class TestClass(objects.DBusObject):
 
         def dbus_readFD(self, fd):
-            f = os.fdopen(fd)
+            f = os.fdopen(fd, 'rb')
             result = f.read()
             f.close()
             return bytearray(result)
 
         def dbus_concatReadFDs(self, fd1, fd2):
-            f1 = os.fdopen(fd1)
-            f2 = os.fdopen(fd2)
+            f1 = os.fdopen(fd1, 'rb')
+            f2 = os.fdopen(fd2, 'rb')
             results = f1.read(), f2.read()
             f1.close()
             f2.close()
-            return bytearray(''.join(results))
+            return bytearray(b''.join(results))
 
         _dbusInterfaceArgs = [
             'org.txdbus.trial.UnixFDArgumentsTester',
