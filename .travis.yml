@@ -1,0 +1,27 @@
+sudo: false
+language: python
+cache: pip
+
+python:
+  - 2.7
+  - 3.3
+  - 3.4
+  - 3.5
+  - 3.6
+  - 3.7-dev
+
+env:
+  matrix:
+    - TOXENV=py
+  global:
+    - LOGNAME=travis
+
+matrix:
+  allow_failures:
+    - python: 3.7-dev
+
+install:
+  - pip install tox
+
+script:
+  - tox

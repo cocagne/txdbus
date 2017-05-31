@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-VERSION     = '1.0.12'
+VERSION     = '1.0.14'
 DESCRIPTION = 'A native Python implementation of the DBus protocol for Twisted applications'
 
 try:
@@ -14,9 +14,7 @@ setup(
     version          = VERSION,
     description      = DESCRIPTION,
     license          = "MIT",
-    long_description ="""\
-A native Python implementation of the DBus protocol for the Twisted
-networking framework""",
+    long_description = open('README.rst').read(),
     url              = 'https://github.com/cocagne/txdbus',
     author           = "Tom Cocagne",
     author_email     = 'tom.cocagne@gmail.com',
