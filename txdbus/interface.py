@@ -6,6 +6,8 @@ model's definition of Interfaces.
 @author: Tom Cocagne
 """
 
+import six
+
 from txdbus import marshal
 
 class Method (object):
@@ -202,7 +204,7 @@ class DBusInterface (object):
             l = list()
             l.append('  <interface name="%s">' % (self.name,))
 
-            k = six.iterkeys(self.methods)
+            k = list(six.iterkeys(self.methods))
             k.sort()
             for m in ( self.methods[a] for a in k ):
                 l.append('    <method name="%s">' % (m.name,))
@@ -212,7 +214,7 @@ class DBusInterface (object):
                     l.append('      <arg direction="out" type="%s"/>' % (arg_sig,))
                 l.append('    </method>')
 
-            k = six.iterkeys(self.signals)
+            k = list(six.iterkeys(self.signals))
             k.sort()
             for s in ( self.signals[a] for a in k ):
                 l.append('    <signal name="%s">' % (s.name,))
@@ -220,7 +222,7 @@ class DBusInterface (object):
                     l.append('      <arg type="%s"/>' % (arg_sig,))
                 l.append('    </signal>')
 
-            k = six.iterkeys(self.properties)
+            k = list(six.iterkeys(self.properties))
             k.sort()
             for p in ( self.properties[a] for a in k ):
                 l.append('    <property name="%s" type="%s" access="%s">' % (p.name, p.sig, p.access,))
