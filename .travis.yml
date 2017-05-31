@@ -13,6 +13,8 @@ python:
 env:
   matrix:
     - TOXENV=py
+  global:
+    - LOGNAME=travis
 
 matrix:
   allow_failures:
