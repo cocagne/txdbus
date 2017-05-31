@@ -48,7 +48,7 @@ class FDObject(objects.DBusObject):
         """
         Returns the byte count after reading till EOF.
         """
-        f = os.fdopen(fd)
+        f = os.fdopen(fd, 'rb')
         result = len(f.read())
         f.close()
         return result
@@ -58,7 +58,7 @@ class FDObject(objects.DBusObject):
         """
         Reads byte_count bytes from fd and returns them.
         """
-        f = os.fdopen(fd)
+        f = os.fdopen(fd, 'rb')
         result = f.read(byte_count)
         f.close()
         return bytearray(result)
@@ -70,7 +70,7 @@ class FDObject(objects.DBusObject):
         """
         result = bytearray()
         for fd in (fd1, fd2):
-            f = os.fdopen(fd)
+            f = os.fdopen(fd, 'rb')
             result.extend(f.read(byte_count))
             f.close()
         return result
