@@ -54,7 +54,10 @@ class ClientAuthenticator (object):
         if m:
             m(args)
         else:
-            raise DBusAuthenticationFailed('Invalid DBus authentication protocol message: ' + repr(line))
+            raise DBusAuthenticationFailed(
+                'Invalid DBus authentication protocol message: ' +
+                line.decode("ascii", "replace")
+            )
 
 
     def authenticationSucceeded(self):
@@ -140,10 +143,13 @@ class ClientAuthenticator (object):
                 self.sendAuthMessage(b'DATA ' + binascii.hexlify(reply))
             except Exception as e:
                 log.msg('DBUS Cookie authentication failed: ' + str(e))
-                self.sendAuthMessage(b'ERROR ' + str(e).encode('ascii'))
+                self.sendAuthMessage(b'ERROR ' + str(e).encode('unicode-escape'))
 
     def _auth_ERROR(self, line):
-        log.msg('Authentication mechanism failed: ' + repr(line))
+        log.msg(
+            'Authentication mechanism failed: ' +
+            line.decode("ascii", "replace")
+        )
         self.authTryNextMethod()
 
     #--------------------------------------------------
