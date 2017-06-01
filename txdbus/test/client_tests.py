@@ -846,14 +846,16 @@ class SignalTester(ServerObjectTester):
             ro.notifyOnSignal('sharedSignal', d2.callback,
                               interface='org.txdbus.trial.Signal2')
 
-            ro.callRemote('sendShared1')
-            ro.callRemote('sendShared2')
+            return defer.DeferredList([
+                ro.callRemote('sendShared1'),
+                ro.callRemote('sendShared2'),
+            ])
 
 
-        self.get_proxy().addCallback(on_proxy)
+        callRemotesDone = self.get_proxy().addCallback(on_proxy)
 
 
-        dl = defer.DeferredList( [d1,d2] )
+        dl = defer.DeferredList([d1,d2, callRemotesDone])
 
         def check_result( result ):
             self.assertEquals( result[0], (True, 'iface1') )
