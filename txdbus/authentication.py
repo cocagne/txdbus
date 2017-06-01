@@ -175,10 +175,9 @@ class ClientAuthenticator (object):
         import pwd
         if dstat.st_uid != pwd.getpwuid(os.geteuid()).pw_uid:
             raise Exception('Keyrings directory is not owned by the current user. Aborting authentication!')
-        
-        f = open(os.path.join(cookie_dir, cookie_context.decode('ascii')), 'rb')
 
-        try:
+        path = os.path.join(cookie_dir, cookie_context.decode('ascii'))
+        with open(path, 'rb') as f:
             for line in f:
                 try:
                     k_id, k_time, k_cookie_hex = line.split()
@@ -186,8 +185,6 @@ class ClientAuthenticator (object):
                         return k_cookie_hex
                 except:
                     pass
-        finally:
-            f.close()
 
 
 
@@ -378,19 +375,15 @@ class BusCookieAuthenticator (object):
 
     def _get_cookies(self,timefunc=time.time):
         cookies = list()
-        f = None
         try:
-            f = open(self.cookie_file, 'rb')
-            for line in f:
-                k_id, k_time, k_cookie_hex = line.split()
+            with open(self.cookie_file, 'rb') as f:
+                for line in f:
+                    k_id, k_time, k_cookie_hex = line.split()
 
-                if abs( timefunc() - int(k_time) ) < 30:
-                    cookies.append( line.split() )
+                    if abs(timefunc() - int(k_time)) < 30:
+                        cookies.append(line.split())
         except:
             pass
-        finally:
-            if f:
-                f.close()
 
         return cookies
     
