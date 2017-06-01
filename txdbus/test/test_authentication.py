@@ -84,9 +84,9 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.assertTrue(self.ca.authenticationSucceeded())
 
     def test_agree_unix_fd(self):
-        self.are('AUTH EXTERNAL')
-        self.send('AGREE_UNIX_FD')
-        self.are('AUTH EXTERNAL')
+        self.are(b'AUTH EXTERNAL')
+        self.send(b'AGREE_UNIX_FD')
+        self.are(b'AUTH EXTERNAL')
 
     def test_data_external(self):
         self.ca.authMech = b'EXTERNAL'
