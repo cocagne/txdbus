@@ -851,19 +851,15 @@ class SignalTester(ServerObjectTester):
                 ro.callRemote('sendShared2'),
             ])
 
-
-        callRemotesDone = self.get_proxy().addCallback(on_proxy)
-
-
-        dl = defer.DeferredList([d1,d2, callRemotesDone])
+        d = self.get_proxy().addCallback(on_proxy)
 
         def check_result( result ):
             self.assertEquals( result[0], (True, 'iface1') )
             self.assertEquals( result[1], (True, 'iface2') )
 
-        dl.addCallback(check_result)
+        defer.DeferredList([d1, d2]).addCallback(check_result)
 
-        return dl
+        return d
 
 
     def test_arg_rule_match(self):
