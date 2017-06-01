@@ -11,6 +11,8 @@ import getpass
 import hashlib
 import binascii
 
+import six
+
 from   zope.interface import Interface, implementer
 
 from   txdbus.protocol import IDBusAuthenticator
@@ -52,7 +54,7 @@ class ClientAuthenticator (object):
         if m:
             m(args)
         else:
-            raise DBusAuthenticationFailed('Invalid DBus authentication protocol message: ' + line)
+            raise DBusAuthenticationFailed('Invalid DBus authentication protocol message: ' + repr(line))
 
 
     def authenticationSucceeded(self):
@@ -80,10 +82,10 @@ class ClientAuthenticator (object):
             
         if self.authMech == b'DBUS_COOKIE_SHA1':
             self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
-                                 binascii.hexlify(getpass.getuser().encode()))
+                                 binascii.hexlify(getpass.getuser().encode('ascii')))
         elif self.authMech == b'ANONYMOUS':
             self.sendAuthMessage(b'AUTH ' + self.authMech + b' ' +
-                                 binascii.hexlify("txdbus".encode()))
+                                 binascii.hexlify(b'txdbus'))
         else:
             self.sendAuthMessage(b'AUTH ' + self.authMech)
 
@@ -138,10 +140,10 @@ class ClientAuthenticator (object):
                 self.sendAuthMessage(b'DATA ' + binascii.hexlify(reply))
             except Exception as e:
                 log.msg('DBUS Cookie authentication failed: ' + str(e))
-                self.sendAuthMessage(b'ERROR ' + str(e).encode())
+                self.sendAuthMessage(b'ERROR ' + str(e).encode('ascii'))
 
     def _auth_ERROR(self, line):
-        log.msg('Authentication mechanism failed: ' + line)
+        log.msg('Authentication mechanism failed: ' + repr(line))
         self.authTryNextMethod()
 
     #--------------------------------------------------
@@ -168,7 +170,7 @@ class ClientAuthenticator (object):
         if dstat.st_uid != pwd.getpwuid(os.geteuid()).pw_uid:
             raise Exception('Keyrings directory is not owned by the current user. Aborting authentication!')
         
-        f = open(os.path.join(cookie_dir, cookie_context), 'r')
+        f = open(os.path.join(cookie_dir, cookie_context.decode('ascii')), 'rb')
 
         try:
             for line in f:
@@ -316,11 +318,11 @@ class BusCookieAuthenticator (object):
         self.challenge_str = binascii.hexlify(hashlib.sha1(
                                               os.urandom(8)).digest())
         
-        msg = ' '.join( [self.cookieContext,
-                         str(self.cookieId),
+        msg = b' '.join( [self.cookieContext.encode('ascii'),
+                         str(self.cookieId).encode('ascii'),
                          self.challenge_str] )
         
-        return ('CONTINUE', msg)
+        return (b'CONTINUE', msg)
 
     
     def _step_two(self, response):
@@ -330,7 +332,7 @@ class BusCookieAuthenticator (object):
         try:
             client_challenge, hash_str = response.split()
 
-            tohash = self.challenge_str + ':' + client_challenge + ':' + self.cookie
+            tohash = self.challenge_str + b':' + client_challenge + b':' + self.cookie
 
             shash = binascii.hexlify( hashlib.sha1(tohash).digest() )
         except:
@@ -372,7 +374,7 @@ class BusCookieAuthenticator (object):
         cookies = list()
         f = None
         try:
-            f = open(self.cookie_file, 'r')
+            f = open(self.cookie_file, 'rb')
             for line in f:
                 k_id, k_time, k_cookie_hex = line.split()
 
@@ -400,10 +402,10 @@ class BusCookieAuthenticator (object):
 
         cookie = binascii.hexlify(os.urandom(24))
         
-        cookies.append( (str(cookie_id), str(int(timefunc())), cookie) )
+        cookies.append((str(cookie_id).encode('ascii'), str(int(timefunc())).encode('ascii'), cookie) )
 
         for c in cookies:
-            os.write(lockfd, ' '.join(c) + '\n')
+            os.write(lockfd, b' '.join(c) + b'\n')
 
         os.close(lockfd)
         if os.geteuid() == 0:
@@ -431,7 +433,7 @@ class BusCookieAuthenticator (object):
             os.unlink(self.lock_file)
         else:
             for c in cookies:
-                os.write(lockfd, ' '.join(c) + '\n')
+                os.write(lockfd, b' '.join(c) + b'\n')
 
             os.close(lockfd)
             if os.geteuid() == 0:
@@ -525,7 +527,7 @@ class BusAuthenticator (object):
         self.state         = None
         self.current_mech  = None
 
-        for n, m in self.authenticators.iteritems():
+        for n, m in six.iteritems(self.authenticators):
             self.mechanisms[ n ] = m
 
         mechNames = self.authenticators.keys()

@@ -1149,26 +1149,26 @@ class ComplexObjectTester(ServerObjectTester):
             return repr(arg1) + ' # ' + repr(arg2)
 
         def dbus_testDictToTuples(self, d):
-            k = d.keys()
+            k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
             return [(x,d[x]) for x in k]
 
         def dbus_testDictToTuples2(self, d):
-            k = d.keys()
+            k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
             return ([(x,d[x]) for x in k], 6)
 
         def dbus_testDictToTuples3(self, d):
-            k = d.keys()
+            k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
             return (2, [(x,d[x]) for x in k], 6)
         
         def dbus_testDictToTuples4(self, tpl):
             d = tpl[0]
-            k = d.keys()
+            k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
             return (2, [(x,d[x]) for x in k], 6)
@@ -1210,7 +1210,8 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testComplexArgs', 'foo', Foo())
 
         def got_reply(reply):
-            self.assertEquals(reply, "u'foo' # [1, 2, [u'substring', 10], 4]")
+            expected = repr(u'foo') + ' # ' + repr([1, 2, [u'substring', 10], 4])
+            self.assertEquals(reply, expected)
 
         return self.proxy_chain(got_object, got_reply)
 

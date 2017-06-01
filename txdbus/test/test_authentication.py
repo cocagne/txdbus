@@ -51,36 +51,36 @@ class ClientAuthenticatorTester(unittest.TestCase):
         
 
     def test_bad_auth_message(self):
-        self.assertRaises(DBusAuthenticationFailed, self.send, 'BAD_LINE')
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'BAD_LINE')
 
     def test_rejection(self):
-        self.ae(self.ca.authMech, 'EXTERNAL')
-        self.are( 'AUTH EXTERNAL')
-        self.send('REJECTED')
-        self.ae(self.ca.authMech, 'DBUS_COOKIE_SHA1')
-        self.are( 'AUTH DBUS_COOKIE_SHA1 ' + tohex('testuser'))
-        self.send('REJECTED')
-        self.ae(self.ca.authMech, 'ANONYMOUS')
-        self.are( 'AUTH ANONYMOUS 747864627573')
-        self.assertRaises(DBusAuthenticationFailed, self.send, 'REJECTED')
+        self.ae(self.ca.authMech, b'EXTERNAL')
+        self.are(b'AUTH EXTERNAL')
+        self.send(b'REJECTED')
+        self.ae(self.ca.authMech, b'DBUS_COOKIE_SHA1')
+        self.are(b'AUTH DBUS_COOKIE_SHA1 ' + tohex(b'testuser'))
+        self.send(b'REJECTED')
+        self.ae(self.ca.authMech, b'ANONYMOUS')
+        self.are(b'AUTH ANONYMOUS 747864627573')
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'REJECTED')
 
 
     def test_error(self):
-        self.ae(self.ca.authMech, 'EXTERNAL')
-        self.are( 'AUTH EXTERNAL')
-        self.send('ERROR')
-        self.ae(self.ca.authMech, 'DBUS_COOKIE_SHA1')
-        self.are( 'AUTH DBUS_COOKIE_SHA1 ' + tohex('testuser'))
-        self.send('ERROR')
-        self.ae(self.ca.authMech, 'ANONYMOUS')
-        self.are( 'AUTH ANONYMOUS 747864627573')
+        self.ae(self.ca.authMech, b'EXTERNAL')
+        self.are(b'AUTH EXTERNAL')
+        self.send(b'ERROR')
+        self.ae(self.ca.authMech, b'DBUS_COOKIE_SHA1')
+        self.are(b'AUTH DBUS_COOKIE_SHA1 ' + tohex(b'testuser'))
+        self.send(b'ERROR')
+        self.ae(self.ca.authMech, b'ANONYMOUS')
+        self.are(b'AUTH ANONYMOUS 747864627573')
 
     def test_ok(self):
-        self.assertRaises(DBusAuthenticationFailed, self.send, 'OK')
-        self.assertRaises(DBusAuthenticationFailed, self.send, 'OK foo')
-        self.send('OK ' + tohex('foo'))
-        self.ae(self.ca.getGUID(), 'foo')
-        self.are( 'BEGIN')
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'OK')
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'OK foo')
+        self.send(b'OK ' + tohex(b'foo'))
+        self.ae(self.ca.getGUID(), b'foo')
+        self.are(b'BEGIN')
         self.assertTrue(self.ca.authenticationSucceeded())
 
     def test_agree_unix_fd(self):
@@ -89,16 +89,16 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.are('AUTH EXTERNAL')
 
     def test_data_external(self):
-        self.ca.authMech = 'EXTERNAL'
-        self.send('DATA')
-        self.are('DATA')
+        self.ca.authMech = b'EXTERNAL'
+        self.send(b'DATA')
+        self.are(b'DATA')
 
     def test_get_cookie(self):
         t   = tempfile.mkdtemp()
         k   = os.path.join(t,'keyring')
-        ctx = 'foo'
-        cid = 'bar'
-        fn  = os.path.join(k, ctx)
+        ctx = b'foo'
+        cid = b'bar'
+        fn  = os.path.join(k, ctx.decode('ascii'))
         
         try:
             os.mkdir(k, 0o0777)
@@ -110,20 +110,20 @@ class ClientAuthenticatorTester(unittest.TestCase):
             self.ca.cookie_dir = '/etc'
             self.assertRaises(Exception, self.ca._authGetDBusCookie, None, None)
 
-            with open(fn, 'w') as f:
-                f.write('abcd 12345 234234234\n')
-                f.write('bar  12345 123456\n')
+            with open(fn, 'wb') as f:
+                f.write(b'abcd 12345 234234234\n')
+                f.write(b'bar  12345 123456\n')
 
             self.ca.cookie_dir = k
-            self.ae(self.ca._authGetDBusCookie(ctx,cid), '123456')
+            self.ae(self.ca._authGetDBusCookie(ctx,cid), b'123456')
 
         finally:
             shutil.rmtree(t)
 
     def test_data_dbus_cookie_sha1_err(self):
-        self.ca.authMech = 'DBUS_COOKIE_SHA1'
-        self.send('DATA ACK!')
-        self.are('ERROR Non-hexadecimal digit found')
+        self.ca.authMech = b'DBUS_COOKIE_SHA1'
+        self.send(b'DATA ACK!')
+        self.are(b'ERROR Non-hexadecimal digit found')
 
 
 
@@ -178,7 +178,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], 'CONTINUE')
+            self.ae(self.s1(0,k)[0], b'CONTINUE')
             self.assertTrue( os.path.exists(k) )
             
         finally:
@@ -191,7 +191,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], 'CONTINUE')
+            self.ae(self.s1(0,k)[0], b'CONTINUE')
             self.assertTrue( os.path.exists(k) )
             self.ar(self.s2('INVALID RESPONSE'))
             
@@ -205,7 +205,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], 'CONTINUE')
+            self.ae(self.s1(0,k)[0], b'CONTINUE')
             self.assertTrue( os.path.exists(k) )
 
             lf = self.ba.cookie_file + '.lock'
@@ -245,18 +245,18 @@ class DBusCookieAuthenticationTester(unittest.TestCase):
     def test_dbus_cookie_authentication(self):
         self.assertEquals(self.ba.getMechanismName(), 'DBUS_COOKIE_SHA1')
         
-        while not self.ca.authMech == 'DBUS_COOKIE_SHA1':
+        while not self.ca.authMech == b'DBUS_COOKIE_SHA1':
             self.ca.authTryNextMethod()
-        self.assertEquals(self.reply, 'AUTH DBUS_COOKIE_SHA1 ' + tohex('testuser'))
+        self.assertEquals(self.reply, b'AUTH DBUS_COOKIE_SHA1 ' + tohex(b'testuser'))
         
         t   = tempfile.mkdtemp()
         k   = os.path.join(t,'keyring')
         try:
             self.ca.cookie_dir = k
             s1 = self.ba._step_one('0',k) 
-            self.assertEquals(s1[0], 'CONTINUE')
-            self.send( 'DATA ' + tohex(s1[1]) )
-            self.assertTrue( self.reply.startswith('DATA') )
+            self.assertEquals(s1[0], b'CONTINUE')
+            self.send(b'DATA ' + tohex(s1[1]) )
+            self.assertTrue(self.reply.startswith(b'DATA'))
             self.assertEquals(self.ba._step_two(unhex(self.reply.split()[1])), ('OK',None))
         finally:
             shutil.rmtree(t)
@@ -283,7 +283,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba._create_cookie(g(20.0))
         self.ba._create_cookie(g(21.2))
         c = self.ba._get_cookies()
-        self.assertEquals(set(['3','4']), set( x[0] for x in c ))
+        self.assertEquals(set([b'3',b'4']), set( x[0] for x in c ))
 
     def test_del_cookie_with_remaining(self):
         self.ba._create_cookie()
@@ -292,7 +292,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba.cookieId = 2
         self.ba._delete_cookie()
         c = self.ba._get_cookies()
-        self.assertEquals(set(['1','3']), set( x[0] for x in c ))
+        self.assertEquals(set([b'1',b'3']), set( x[0] for x in c ))
 
     def test_del_cookie_last(self):
         self.ba._create_cookie()
@@ -365,7 +365,7 @@ def get_username():
     if uname is None:
         uname = os.environ.get('LOGNAME', None)
 
-    return uname
+    return uname.encode('ascii')
 
 
 class AuthTestProtocol(protocol.Protocol):
@@ -447,21 +447,21 @@ class AuthTestProtocol(protocol.Protocol):
 
     def send(self, msg):
         if not self._sent_null:
-            self.transport.write('\0')
+            self.transport.write(b'\0')
             self._sent_null = True
-        self.transport.write(msg + '\r\n')
+        self.transport.write(msg + b'\r\n')
 
     def test_no_null_byte_at_start(self):
         d = self.expectDisconnect()
-        self.transport.write('blah')
+        self.transport.write(b'blah')
         return d
 
 
     def test_bad_command(self):
         d = self.failOnExit()
-        self.send('FISHY')
+        self.send(b'FISHY')
         def recv( msg ):
-            self.assertEquals(msg, 'ERROR "Unknown command"')
+            self.assertEquals(msg, b'ERROR "Unknown command"')
             d.callback(None)
         self.gotMessage = recv
         return d
@@ -469,34 +469,34 @@ class AuthTestProtocol(protocol.Protocol):
 
     def test_bad_mech(self):
         d = self.failOnExit()
-        self.send('AUTH FOOBAR')
+        self.send(b'AUTH FOOBAR')
         def recv( msg ):
-            self.assertTrue(msg.startswith('REJECTED'))
+            self.assertTrue(msg.startswith(b'REJECTED'))
             d.callback(None)
         self.gotMessage = recv
         return d
 
     def test_bad_mech2(self):
         d = self.failOnExit()
-        self.send('AUTH FOO BAR')
+        self.send(b'AUTH FOO BAR')
         def recv( msg ):
-            self.assertTrue(msg.startswith('REJECTED'))
+            self.assertTrue(msg.startswith(b'REJECTED'))
             d.callback(None)
         self.gotMessage = recv
         return d
 
     def test_too_long(self):
         d = self.expectDisconnect()
-        self.send('AUTH ' + 'A'* 17000)
+        self.send(b'AUTH ' + b'A'* 17000)
         return d
 
     def test_max_rejects(self):
         d = self.expectDisconnect()
         def retry(_=None):
             dr = defer.Deferred()
-            self.send('AUTH FOOBAR')
+            self.send(b'AUTH FOOBAR')
             def recv( msg ):
-                self.assertTrue(msg.startswith('REJECTED'))
+                self.assertTrue(msg.startswith(b'REJECTED'))
                 dr.callback(None)
             self.gotMessage = recv
             return dr
@@ -512,24 +512,24 @@ class AuthTestProtocol(protocol.Protocol):
 
     def test_reject(self):
         d = self.failOnExit()
-        self.send('AUTH DBUS_COOKIE_SHA1')
+        self.send(b'AUTH DBUS_COOKIE_SHA1')
         def recv(msg):
-            self.assertTrue(msg.startswith('REJECTED'))
+            self.assertTrue(msg.startswith(b'REJECTED'))
             d.callback(None)
         self.gotMessage = recv
         return d
 
     def test_retry(self):
         d = self.failOnExit()
-        self.send('AUTH DBUS_COOKIE_SHA1')
+        self.send(b'AUTH DBUS_COOKIE_SHA1')
 
         def recv2(msg):
-            self.assertTrue(msg.startswith('DATA'))
+            self.assertTrue(msg.startswith(b'DATA'))
             d.callback(None)
             
         def recv1(msg):
-            self.send('AUTH DBUS_COOKIE_SHA1 ' + binascii.hexlify(get_username()))
-            self.assertTrue(msg.startswith('REJECTED'))
+            self.send(b'AUTH DBUS_COOKIE_SHA1 ' + binascii.hexlify(get_username()))
+            self.assertTrue(msg.startswith(b'REJECTED'))
             self.gotMessage = recv2
 
         self.gotMessage = recv1
@@ -538,15 +538,15 @@ class AuthTestProtocol(protocol.Protocol):
     def test_cancel(self):
         d = self.failOnExit()    
         
-        self.send('AUTH DBUS_COOKIE_SHA1 '+ binascii.hexlify(get_username()))
+        self.send(b'AUTH DBUS_COOKIE_SHA1 '+ binascii.hexlify(get_username()))
 
         def recv2(msg):
-            self.assertTrue(msg.startswith('REJECTED'))
+            self.assertTrue(msg.startswith(b'REJECTED'))
             d.callback(None)
             
         def recv1(msg):
-            self.send('CANCEL' )
-            self.assertTrue(msg.startswith('DATA'))
+            self.send(b'CANCEL' )
+            self.assertTrue(msg.startswith(b'DATA'))
             self.gotMessage = recv2
 
         self.gotMessage = recv1
