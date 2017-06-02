@@ -89,7 +89,7 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.assertTrue(self.ca.authenticationSucceeded())
 
     def test_unix_fd_disagree(self):
-        self.assertRaises(DBusAuthenticationFailed, self.send, 'AGREE_UNIX_FD')
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'AGREE_UNIX_FD')
 
     def test_unix_fd_agree(self):
 
@@ -113,10 +113,10 @@ class ClientAuthenticatorTester(unittest.TestCase):
         # "re-"begin authentication after faking my transport
         self.ca.beginAuthentication(self)
 
-        self.send('OK ' + tohex('foo'))
-        self.are('NEGOTIATE_UNIX_FD')
-        self.send('AGREE_UNIX_FD')
-        self.are('BEGIN')
+        self.send(b'OK ' + tohex(b'foo'))
+        self.are(b'NEGOTIATE_UNIX_FD')
+        self.send(b'AGREE_UNIX_FD')
+        self.are(b'BEGIN')
         del self.transport
 
     def test_data_external(self):
