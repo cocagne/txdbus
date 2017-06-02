@@ -452,7 +452,7 @@ class DBusObject (object):
                     if key in d:
                         return d[ key ]
             else:
-                for ic in cache.itervalues():
+                for ic in six.itervalues(cache):
                     d = getattr(ic, cacheAttr)
                     if key in d:
                         return d[ key ]
@@ -461,7 +461,7 @@ class DBusObject (object):
     def _getDecoratedMethod(self, interfaceName, methodName):
         f = self._searchCache( interfaceName, 'methods', methodName )
         if f:
-            return getattr(self, f.func_name)
+            return getattr(self, f.__name__)
                 
 
         
@@ -503,7 +503,7 @@ class DBusObject (object):
         if len(args) >= 1 and args[-1] == 'dbusCaller':
             needs_caller = True
 
-        method_obj.im_func._dbusCaller = needs_caller
+        method_obj.__func__._dbusCaller = needs_caller
         
         
     def executeMethod(self, interfaceObj, methodName, methodArguments, sender):
@@ -601,8 +601,8 @@ class DBusObject (object):
 
         else:
             for cache in self._iterIFaceCaches():
-                for ifc in cache.itervalues():
-                    for p in ifc.properties.itervalues():
+                for ifc in six.itervalues(cache):
+                    for p in six.itervalues(ifc.properties):
                         addp( p )
 
         return r
