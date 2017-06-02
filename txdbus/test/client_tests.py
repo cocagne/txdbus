@@ -1757,8 +1757,15 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('GetAll', '')
 
         def got_reply(reply):
-            self.assertEquals(reply, {'common'   : 'common1',
-                                      'prop1'    : 'foobar',
+            # GetAll called with no specific interface.
+            # Remote object implements two interfaces with a 'common'
+            # property. The result may include the value of either
+            # interface's property, in this case:
+            self.assertIn(reply['common'], ('common1', 'common2'))
+
+            # The remaining properties have no possible ambiguity.
+            del reply['common']
+            self.assertEquals(reply, {'prop1'    : 'foobar',
                                       'prop2'    : 5,
                                       'prop_if1' : 'pif1',
                                       'pwrite'   : 'orig'})
