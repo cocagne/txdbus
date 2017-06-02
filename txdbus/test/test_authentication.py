@@ -5,7 +5,9 @@ import tempfile
 import shutil
 import getpass
 import time
+from unittest import SkipTest
 
+import six
 from twisted.trial import unittest
 
 from twisted.internet.protocol import Factory
@@ -584,6 +586,9 @@ class AuthFactory (Factory):
 class ServerObjectTester(unittest.TestCase):
     
     def setUp(self):
+        if six.PY3:
+            raise SkipTest("Not yet ported to python3")
+
         if INTERNAL_BUS:
             os.environ['DBUS_SESSION_BUS_ADDRESS']='unix:abstract=/tmp/txdbus-test,guid=5'
             
