@@ -24,4 +24,4 @@ install:
   - pip install tox
 
 script:
-  - tox
+  - dbus-launch -- tox

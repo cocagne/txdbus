@@ -848,22 +848,36 @@ class SignalTester(ServerObjectTester):
             ro.notifyOnSignal('sharedSignal', d2.callback,
                               interface='org.txdbus.trial.Signal2')
 
-            ro.callRemote('sendShared1')
-            ro.callRemote('sendShared2')
+            return defer.DeferredList([
+                ro.callRemote('sendShared1'),
+                ro.callRemote('sendShared2'),
+            ])
+
+        def check_signals_sent(result):
+            # both callRemotes successful and returning None
+            self.assertEquals(len(result), 2)
+            for success, returnValue in result:
+                self.assertTrue(success)
+                self.assertIsNone(returnValue)
+            return result
+
+        signalsSent = self.get_proxy().addCallback(on_proxy)
+        signalsSent.addCallback(check_signals_sent)
 
 
-        self.get_proxy().addCallback(on_proxy)
-
-
-        dl = defer.DeferredList( [d1,d2] )
-
-        def check_result( result ):
+        def check_signals_received( result ):
+            # d1 and d2 calledback with the correct signal data
             self.assertEquals( result[0], (True, 'iface1') )
             self.assertEquals( result[1], (True, 'iface2') )
+            return result
 
-        dl.addCallback(check_result)
+        signalsReceived = defer.DeferredList([d1,d2])
+        signalsReceived.addCallback(check_signals_received)
 
-        return dl
+        # success is both:
+        # - signals sent, callRemotes checked, connections closed
+        # - signals received, callbacks checked
+        return defer.DeferredList([signalsSent, signalsReceived])
 
 
     def test_arg_rule_match(self):
@@ -1761,8 +1775,15 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('GetAll', '')
 
         def got_reply(reply):
-            self.assertEquals(reply, {'common'   : 'common1',
-                                      'prop1'    : 'foobar',
+            # GetAll called with no specific interface.
+            # Remote object implements two interfaces with a 'common'
+            # property. The result may include the value of either
+            # interface's property, in this case:
+            self.assertIn(reply['common'], ('common1', 'common2'))
+
+            # The remaining properties have no possible ambiguity.
+            del reply['common']
+            self.assertEquals(reply, {'prop1'    : 'foobar',
                                       'prop2'    : 5,
                                       'prop_if1' : 'pif1',
                                       'pwrite'   : 'orig'})
