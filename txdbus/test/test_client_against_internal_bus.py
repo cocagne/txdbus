@@ -7,7 +7,7 @@ from twisted.internet import reactor, defer
 from txdbus import objects, endpoints, bus, error, client
 from twisted.trial import unittest
 
-import client_tests
+from txdbus.test import client_tests
 
 # Force the objects test code to use the internal bus rather than the
 # session bus provided by the operating system.
