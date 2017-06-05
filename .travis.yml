@@ -25,3 +25,7 @@ install:
 
 script:
   - dbus-launch -- tox
+
+after_script:
+  - pip install codecov
+  - codecov
