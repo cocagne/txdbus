@@ -5,7 +5,6 @@ import tempfile
 import shutil
 import getpass
 import time
-from unittest import SkipTest
 
 import six
 
@@ -209,7 +208,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], b'CONTINUE')
+            self.ae(self.s1(0,k)[0], 'CONTINUE')
             self.assertTrue( os.path.exists(k) )
             
         finally:
@@ -222,7 +221,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], b'CONTINUE')
+            self.ae(self.s1(0,k)[0], 'CONTINUE')
             self.assertTrue( os.path.exists(k) )
             self.ar(self.s2('INVALID RESPONSE'))
             
@@ -236,7 +235,7 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         try:
             
             self.assertTrue( not os.path.exists(k) )
-            self.ae(self.s1(0,k)[0], b'CONTINUE')
+            self.ae(self.s1(0,k)[0], 'CONTINUE')
             self.assertTrue( os.path.exists(k) )
 
             lf = self.ba.cookie_file + '.lock'
@@ -285,7 +284,7 @@ class DBusCookieAuthenticationTester(unittest.TestCase):
         try:
             self.ca.cookie_dir = k
             s1 = self.ba._step_one('0',k) 
-            self.assertEquals(s1[0], b'CONTINUE')
+            self.assertEquals(s1[0], 'CONTINUE')
             self.send(b'DATA ' + tohex(s1[1]) )
             self.assertTrue(self.reply.startswith(b'DATA'))
             self.assertEquals(self.ba._step_two(unhex(self.reply.split()[1])), ('OK',None))
@@ -400,7 +399,7 @@ def get_username():
 
 
 class AuthTestProtocol(protocol.Protocol):
-    _buffer = ''
+    _buffer = b''
     _sent_null = False
     
     def connectionMade(self):
@@ -411,7 +410,7 @@ class AuthTestProtocol(protocol.Protocol):
         self.factory._ok(self)
 
     def dataReceived(self, data):
-        lines  = (self._buffer+data).split('\r\n')
+        lines  = (self._buffer+data).split(b'\r\n')
         self._buffer = lines.pop(-1)
 
         for line in lines:
@@ -615,8 +614,6 @@ class AuthFactory (Factory):
 class ServerObjectTester(unittest.TestCase):
     
     def setUp(self):
-        if six.PY3:
-            raise SkipTest("Not yet ported to python3")
 
         if INTERNAL_BUS:
             os.environ['DBUS_SESSION_BUS_ADDRESS']='unix:abstract=/tmp/txdbus-test,guid=5'
