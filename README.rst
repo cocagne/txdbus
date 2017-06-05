@@ -5,6 +5,10 @@ TxDBus
   :target: https://travis-ci.org/cocagne/txdbus
   :alt: Travis CI build status
 
+.. image:: https://codecov.io/gh/cocagne/txdbus/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/cocagne/txdbus
+  :alt: Codecov coverage report
+
 .. image:: https://img.shields.io/pypi/v/txdbus.svg
   :target: https://pypi.python.org/pypi/txdbus
   :alt: version on pypi
