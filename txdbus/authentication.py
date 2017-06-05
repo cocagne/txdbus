@@ -342,7 +342,7 @@ class BusCookieAuthenticator (object):
                          str(self.cookieId).encode('ascii'),
                          self.challenge_str] )
         
-        return (b'CONTINUE', msg)
+        return ('CONTINUE', msg)
 
     
     def _step_two(self, response):
@@ -528,9 +528,9 @@ class BusAuthenticator (object):
 
     MAX_REJECTS_ALLOWED = 5
 
-    authenticators = { 'EXTERNAL'         : BusExternalAuthenticator,
-                       'DBUS_COOKIE_SHA1' : BusCookieAuthenticator,
-                       'ANONYMOUS'        : BusAnonymousAuthenticator }
+    authenticators = { b'EXTERNAL'         : BusExternalAuthenticator,
+                       b'DBUS_COOKIE_SHA1' : BusCookieAuthenticator,
+                       b'ANONYMOUS'        : BusAnonymousAuthenticator }
     
     def __init__(self, server_guid):
         self.server_guid   = server_guid
@@ -548,7 +548,7 @@ class BusAuthenticator (object):
 
         mechNames = self.authenticators.keys()
         
-        self.reject_msg = 'REJECTED ' + ' '.join(mechNames)
+        self.reject_msg = b'REJECTED ' + b' '.join(mechNames)
 
 
         
@@ -568,7 +568,7 @@ class BusAuthenticator (object):
         if m:
             m(args)
         else:
-            self.sendError('"Unknown command"')
+            self.sendError(b'"Unknown command"')
 
 
     def authenticationSucceeded(self):
@@ -600,9 +600,9 @@ class BusAuthenticator (object):
         
     def sendError(self, msg = None):
         if msg:
-            self.sendAuthMessage('ERROR ' + msg)
+            self.sendAuthMessage(b'ERROR ' + msg)
         else:
-            self.sendAuthMessage('ERROR')
+            self.sendAuthMessage(b'ERROR')
 
 
     def stepAuth(self, response):
@@ -611,18 +611,18 @@ class BusAuthenticator (object):
             return
 
         if response:
-            response = binascii.unhexlify( response.strip() )
+            response = binascii.unhexlify( response.strip() ).decode('ascii')
 
             
         status, challenge = self.current_mech.step(response)
 
 
         if status == 'OK':
-            self.sendAuthMessage('OK ' + self.server_guid)
+            self.sendAuthMessage(b'OK ' + self.server_guid)
             self.state = 'WaitingForBegin'
 
         elif status == 'CONTINUE':
-            self.sendAuthMessage('DATA ' + binascii.hexlify(challenge))
+            self.sendAuthMessage(b'DATA ' + binascii.hexlify(challenge))
             self.state = 'WaitingForData'
             
         else:

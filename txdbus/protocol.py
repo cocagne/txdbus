@@ -6,6 +6,8 @@ This module implements the wire-level DBus protocol.
 import struct
 import os.path
 
+import six
+
 from   zope.interface import Interface, implementer
 
 from   twisted.internet import protocol, defer, error
@@ -145,7 +147,7 @@ class BasicDBusProtocol(protocol.Protocol):
                     self.dataReceived(b'')
         else:
             if not self._client and self._firstByte:
-                if not data[0] == '\0':
+                if six.byte2int(data) != 0:
                     self.transport.loseConnection()
                     return
                 self._firstByte = False
