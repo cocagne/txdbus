@@ -4,7 +4,7 @@ import sys
 import six
 from twisted.trial import unittest
 
-from txdbus.test import client_tests
+from tests import client_tests
 
 
 # Only test against the native bus if it's available
