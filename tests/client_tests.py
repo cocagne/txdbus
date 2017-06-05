@@ -10,7 +10,9 @@
 #
 
 import os
+import tempfile
 
+import twisted
 from twisted.internet import reactor, defer
 
 from txdbus import objects, endpoints, bus, error, client, introspection
@@ -2121,4 +2123,80 @@ class BusNameTest(SimpleObjectTester):
         
         return d
 
+
+
+# Multiple UNIX_FD arguments require Twisted 17.1.0 or later.
+
+_multiFD = twisted.version >= type(twisted.version)('twisted', 17, 1, 0)
+_multiFDmsg = 'Multi FD arg support requires Twisted 17.1.0 or later.'
+
+
+class UnixFDArgumentsTester(ServerObjectTester):
+
+    class TestClass(objects.DBusObject):
+
+        def dbus_readFD(self, fd):
+            f = os.fdopen(fd, 'rb')
+            result = f.read()
+            f.close()
+            return bytearray(result)
+
+        def dbus_concatReadFDs(self, fd1, fd2):
+            f1 = os.fdopen(fd1, 'rb')
+            f2 = os.fdopen(fd2, 'rb')
+            results = f1.read(), f2.read()
+            f1.close()
+            f2.close()
+            return bytearray(b''.join(results))
+
+        _dbusInterfaceArgs = [
+            'org.txdbus.trial.UnixFDArgumentsTester',
+            Method('readFD', arguments='h', returns='ay'),
+        ]
+
+        if _multiFD:
+            _dbusInterfaceArgs.append(
+                Method('concatReadFDs', arguments='hh', returns='ay'),
+            )
+
+        dbusInterfaces = [DBusInterface(*_dbusInterfaceArgs)]
+
+
+    def _create_temp_file(self, payload):
+
+        fd, filename = tempfile.mkstemp(prefix='txdbus-test-')
+        self.addCleanup(os.unlink, filename)
+        os.write(fd, payload)
+        os.close(fd)
+        return filename
+
+
+    @defer.inlineCallbacks
+    def test_call_with_one_UNIX_FD_arg(self):
+
+        PAYLOAD = b'file contents'
+        filename = self._create_temp_file(PAYLOAD)
+
+        ro = yield self.get_proxy()
+        with open(filename, 'rb') as f:
+            result = yield ro.callRemote('readFD', f.fileno())
+
+        self.assertEqual(PAYLOAD, bytearray(result))
+
+
+    @defer.inlineCallbacks
+    def test_call_with_two_UNIX_FD_args(self):
+
+        PAYLOAD_1 = b'0123456789'
+        PAYLOAD_2 = b'abcdefghij'
+        filename1 = self._create_temp_file(PAYLOAD_1)
+        filename2 = self._create_temp_file(PAYLOAD_2)
+
+        ro = yield self.get_proxy()
+        with open(filename1, 'rb') as f1, open(filename2, 'rb') as f2:
+            result = yield ro.callRemote('concatReadFDs', f1.fileno(), f2.fileno())
+
+        self.assertEqual(PAYLOAD_1 + PAYLOAD_2, bytearray(result))
+    if not _multiFD:
+        test_call_with_two_UNIX_FD_args.skip = _multiFDmsg
 

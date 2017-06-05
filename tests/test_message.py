@@ -22,7 +22,7 @@ class MessageTester(unittest.TestCase):
         class E(message.ErrorMessage):
             _messageType=99
         try:
-            message.parseMessage(E('foo.bar', 5).rawMessage)
+            message.parseMessage(E('foo.bar', 5).rawMessage, oobFDs=[])
             self.assertTrue(False)
         except Exception as e:
             self.assertEquals(str(e), 'Unknown Message Type: 99')

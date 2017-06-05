@@ -6,10 +6,12 @@ This module implements the wire-level DBus protocol.
 import struct
 import os.path
 
-from   zope.interface import Interface
+from   zope.interface import Interface, implementer
 
 from   twisted.internet import protocol, defer, error
 from   twisted.python import log
+
+from   twisted.internet import interfaces
 
 from txdbus import message, error
 
@@ -59,6 +61,7 @@ class IDBusAuthenticator (Interface):
 
 
 
+@implementer(interfaces.IFileDescriptorReceiver)
 class BasicDBusProtocol(protocol.Protocol):
     """
     Basic class providing support for converting a stream of bytes into
@@ -69,6 +72,8 @@ class BasicDBusProtocol(protocol.Protocol):
     @type authenticator: Class implementing L{IDBusAuthenticator}
     """
     _buffer         = b''
+    _receivedFDs    = []
+    _toBeSentFDs    = []
     _authenticated  = False
     _nextMsgLen     = 0
     _endian         = '<'
@@ -184,6 +189,11 @@ class BasicDBusProtocol(protocol.Protocol):
                     return self.authMessageLengthExceeded(self._buffer)
             
 
+    def fileDescriptorReceived(self, fd):
+
+        self._receivedFDs.append(fd)
+
+
     #--------------------------------------------------------------------------
     # Authentication Message Handling
     #
@@ -230,6 +240,9 @@ class BasicDBusProtocol(protocol.Protocol):
         @param msg: A L{message.DBusMessage} instance to send over the connection
         """
         assert isinstance(msg, message.DBusMessage)
+        for fd in self._toBeSentFDs:
+            self.transport.sendFileDescriptor(fd)
+        self._toBeSentFDs = []
         self.transport.write( msg.rawMessage )
         
     
@@ -240,8 +253,10 @@ class BasicDBusProtocol(protocol.Protocol):
         @param rawMsg: Byte-string containing the complete message
         @type rawMsg: C{str}
         """
-        m  = message.parseMessage( rawMsg )
+        m  = message.parseMessage( rawMsg, self._receivedFDs )
         mt = m._messageType
+
+        self._receivedFDs = []
             
         if mt == 1:
             self.methodCallReceived( m )

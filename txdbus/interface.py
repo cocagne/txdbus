@@ -6,9 +6,11 @@ model's definition of Interfaces.
 @author: Tom Cocagne
 """
 
+import twisted
 import six
 
 from txdbus import marshal
+
 
 class Method (object):
     """
@@ -34,6 +36,12 @@ class Method (object):
         self.nret    = -1
         self.sigIn  = arguments
         self.sigOut = returns
+        if arguments.count('h') > 1:
+            # More than one UNIX_FD argument requires Twisted >= 17.1.0.
+            minTxVersion = '17.1.0'
+            if twisted.version.base() < minTxVersion:
+                raise RuntimeError('Method %r with multiple UNIX_FD arguments '
+                    'requires Twisted >= %s' % (name, minTxVersion))
 
         
 class Signal (object):

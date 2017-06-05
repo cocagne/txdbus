@@ -8,10 +8,13 @@ import time
 from unittest import SkipTest
 
 import six
+
+from zope.interface import implementer
+
 from twisted.trial import unittest
 
 from twisted.internet.protocol import Factory
-from twisted.internet import reactor, defer, protocol, error
+from twisted.internet import reactor, defer, protocol, error, interfaces
 
 from txdbus import bus, endpoints, authentication
 from txdbus.authentication import DBusAuthenticationFailed
@@ -85,10 +88,36 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.are(b'BEGIN')
         self.assertTrue(self.ca.authenticationSucceeded())
 
-    def test_agree_unix_fd(self):
-        self.are(b'AUTH EXTERNAL')
+    def test_unix_fd_disagree(self):
+        self.assertRaises(DBusAuthenticationFailed, self.send, b'AGREE_UNIX_FD')
+
+    def test_unix_fd_agree(self):
+
+        @implementer(interfaces.IUNIXTransport)
+        class FakeUNIXTransport(object):
+            def write(self, data):
+                pass
+            def writeSequence(self, data):
+                pass
+            def loseConnection(self):
+                pass
+            def getPeer(self):
+                pass
+            def getHost(self):
+                pass
+            def sendFileDescriptor(self, descriptor):
+                pass
+
+        self.transport = FakeUNIXTransport()
+
+        # "re-"begin authentication after faking my transport
+        self.ca.beginAuthentication(self)
+
+        self.send(b'OK ' + tohex(b'foo'))
+        self.are(b'NEGOTIATE_UNIX_FD')
         self.send(b'AGREE_UNIX_FD')
-        self.are(b'AUTH EXTERNAL')
+        self.are(b'BEGIN')
+        del self.transport
 
     def test_data_external(self):
         self.ca.authMech = b'EXTERNAL'

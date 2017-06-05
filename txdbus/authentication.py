@@ -19,6 +19,7 @@ from   txdbus.protocol import IDBusAuthenticator
 from   txdbus.error    import DBusAuthenticationFailed
 
 from twisted.python import log
+from twisted.internet import interfaces
 
 
 @implementer(IDBusAuthenticator)
@@ -35,6 +36,7 @@ class ClientAuthenticator (object):
     def beginAuthentication(self, protocol):
         self.authenticated = False
         self.protocol      = protocol
+        self.unixFDSupport = self._usesUnixSocketTransport(self.protocol)
         self.guid          = None
         self.cookiedir     = None # used for testing only
 
@@ -42,7 +44,15 @@ class ClientAuthenticator (object):
         self.authOrder.reverse()
 
         self.authTryNextMethod()
-        
+
+
+    def _usesUnixSocketTransport(self, protocol):
+
+        return (
+            getattr(protocol, 'transport', None) and
+            interfaces.IUNIXTransport.providedBy(protocol.transport)
+        )
+
 
     def handleAuthMessage(self, line):
         if not b' ' in line:
@@ -108,12 +118,19 @@ class ClientAuthenticator (object):
         except:
             raise DBusAuthenticationFailed('Invalid guid in OK message')
         else:
-            self.sendAuthMessage(b'BEGIN')
-            self.authenticated = True
+            if self.unixFDSupport:
+                self.sendAuthMessage(b'NEGOTIATE_UNIX_FD')
+            else:
+                self.sendAuthMessage(b'BEGIN')
+                self.authenticated = True
         
 
     def _auth_AGREE_UNIX_FD(self, line):
-        log.msg('DBus Auth not implemented AGREE_UNIX_FD')
+        if self.unixFDSupport:
+            self.sendAuthMessage(b'BEGIN')
+            self.authenticated = True
+        else:
+            raise DBusAuthenticationFailed('AGREE_UNIX_FD with no NEGOTIATE_UNIX_FD')
         
     
     def _auth_DATA(self, line):

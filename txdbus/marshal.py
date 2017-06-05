@@ -390,32 +390,37 @@ def genCompleteTypes( compoundSig ):
 #
 #
 
-def marshal_byte( ct, var, start_byte, lendian ):
+def marshal_byte( ct, var, start_byte, lendian, oobFDs ):
     return 1, [ struct.pack( lendian and '<B' or '>B', var) ]
 
-def marshal_boolean( ct, var, start_byte, lendian ):
+def marshal_boolean( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<I' or '>I', 1 if var else 0) ]
 
-def marshal_int16( ct, var, start_byte, lendian ):
+def marshal_int16( ct, var, start_byte, lendian, oobFDs ):
     return 2, [ struct.pack( lendian and '<h' or '>h', var) ]
 
-def marshal_uint16( ct, var, start_byte, lendian ):
+def marshal_uint16( ct, var, start_byte, lendian, oobFDs ):
     return 2, [ struct.pack( lendian and '<H' or '>H', var) ]
 
-def marshal_int32( ct, var, start_byte, lendian ):
+def marshal_int32( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<i' or '>i', var) ]
 
-def marshal_uint32( ct, var, start_byte, lendian ):
+def marshal_uint32( ct, var, start_byte, lendian, oobFDs ):
     return 4, [ struct.pack( lendian and '<I' or '>I', var) ]
 
-def marshal_int64( ct, var, start_byte, lendian ):
+def marshal_int64( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<q' or '>q', var) ]
 
-def marshal_uint64( ct, var, start_byte, lendian ):
+def marshal_uint64( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<Q' or '>Q', var) ]
 
-def marshal_double( ct, var, start_byte, lendian ):
+def marshal_double( ct, var, start_byte, lendian, oobFDs ):
     return 8, [ struct.pack( lendian and '<d' or '>d', var) ]
+
+def marshal_unix_fd( ct, var, start_byte, lendian, oobFDs ):
+    index = len(oobFDs)
+    oobFDs.append(var)
+    return 4, [ struct.pack( lendian and '<I' or '>I', index) ]
 
 
 # STRING:
@@ -425,7 +430,7 @@ def marshal_double( ct, var, start_byte, lendian ):
 #       2 - string data (no embedded nuls)
 #       3 - terminating nul byte
 #
-def marshal_string( ct, var, start_byte, lendian ):
+def marshal_string( ct, var, start_byte, lendian, oobFDs ):
     if not isinstance(var, six.string_types):
         raise MarshallingError('Required string. Received: ' + repr(var))
     if var.find('\0') != -1:
@@ -437,9 +442,9 @@ def marshal_string( ct, var, start_byte, lendian ):
 # OBJECT_PATH:
 #    - Identical to string
 #    
-def marshal_object_path( ct, var, start_byte, lendian ):
+def marshal_object_path( ct, var, start_byte, lendian, oobFDs ):
     validateObjectPath(var)
-    return marshal_string( ct, var, start_byte, lendian )
+    return marshal_string( ct, var, start_byte, lendian, oobFDs )
 
 
 # SIGNATURE:
@@ -450,7 +455,7 @@ def marshal_object_path( ct, var, start_byte, lendian ):
 #       1 - Single byte length
 #       2 - Valid signature string
 #       3 - terminating nul byte
-def marshal_signature( ct, var, start_byte, lendian ):
+def marshal_signature( ct, var, start_byte, lendian, oobFDs ):
     # XXX validate signature
     var = codecs.encode(var, 'ascii')
     return 2 + len(var), [struct.pack(lendian and '<B' or '>B', len(var)), var, b'\0']
@@ -462,7 +467,7 @@ def marshal_signature( ct, var, start_byte, lendian ):
 #       1 - UINT32 length of array data (does not include alignment padding)
 #       2 - Padding to required alignment of contained data type
 #       3 - each array element
-def marshal_array( ct, var, start_byte, lendian ):
+def marshal_array( ct, var, start_byte, lendian, oobFDs ):
     chunks   = list()
     data_len = 0
     tsig     = ct[1:]   # strip of leading 'a'
@@ -492,7 +497,7 @@ def marshal_array( ct, var, start_byte, lendian ):
             data_len   += len(padding)
             chunks.append( padding )
         
-        nbytes, vchunks = marshallers[ tcode ]( tsig, item, start_byte, lendian )
+        nbytes, vchunks = marshallers[ tcode ]( tsig, item, start_byte, lendian, oobFDs )
 
         start_byte += nbytes
         data_len   += nbytes
@@ -509,8 +514,8 @@ def marshal_array( ct, var, start_byte, lendian ):
 #    - Must start on 8 byte boundary
 #    - Content consists of each field marshaled in sequence
 #
-def marshal_struct( ct, var, start_byte, lendian ):
-    return marshal( ct[1:-1], var, start_byte, lendian )
+def marshal_struct( ct, var, start_byte, lendian, oobFDs ):
+    return marshal( ct[1:-1], var, start_byte, lendian, oobFDs )
 
 
 marshal_dictionary = marshal_struct
@@ -522,13 +527,13 @@ marshal_dictionary = marshal_struct
 #       1 - Marshaled SIGNATURE
 #       2 - Any required padding to align the type specified in the signature
 #       3 - Marshaled value
-def marshal_variant( ct, var, start_byte, lendian ):
+def marshal_variant( ct, var, start_byte, lendian, oobFDs ):
     # XXX: ensure only a single, complete type is in the siguature
     bstart = start_byte
     
     vsig = sigFromPy(var)
     
-    nbytes, chunks = marshal_signature( ct, sigFromPy(var), start_byte, lendian )
+    nbytes, chunks = marshal_signature( ct, sigFromPy(var), start_byte, lendian, oobFDs )
 
     start_byte += nbytes
 
@@ -563,16 +568,19 @@ marshallers = { 'y' : marshal_byte,
                 '(' : marshal_struct,
                 'v' : marshal_variant,
                 '{' : marshal_dictionary,
-                'h' : marshal_uint32 }
+                'h' : marshal_unix_fd }
 
 
-def marshal( compoundSignature, variableList, startByte = 0, lendian=True ):
+def marshal(compoundSignature, variableList, startByte = 0, lendian=True, oobFDs=None):
     """
     Encodes the Python objects in variableList into the DBus wire-format
     matching the supplied compoundSignature. This function retuns a list of
     binary strings is rather than a single string to simplify the recursive
     marshalling algorithm. A single string may be easily obtained from the
     result via: ''.join(list_of_binary_strings)
+
+    Any UNIX_FD 'h' type is encoded per spec and the respective FD appended
+    to oobFDs which should be supplied as an empty list.
     
     @type compoundSignature: C{string}
     @param compoundSignature: DBus signature specifying the types of the
@@ -610,7 +618,7 @@ def marshal( compoundSignature, variableList, startByte = 0, lendian=True ):
             startByte += len(padding)
             chunks.append( padding )
         
-        nbytes, vchunks = marshallers[ tcode ]( ct, var, startByte, lendian )
+        nbytes, vchunks = marshallers[ tcode ]( ct, var, startByte, lendian, oobFDs )
 
         startByte += nbytes
         
@@ -628,32 +636,40 @@ def marshal( compoundSignature, variableList, startByte = 0, lendian=True ):
 #-------------------------------------------------------------------------------
 
 
-def unmarshal_byte(ct, data, offset, lendian):
+def unmarshal_byte(ct, data, offset, lendian, oobFDs):
     return 1, struct.unpack_from( lendian and '<B' or '>B', data, offset)[0]
 
-def unmarshal_boolean(ct, data, offset, lendian):
+def unmarshal_boolean(ct, data, offset, lendian, oobFDs):
     return 4, struct.unpack_from( lendian and '<I' or '>I', data, offset)[0] != 0
 
-def unmarshal_int16(ct, data, offset, lendian):
+def unmarshal_int16(ct, data, offset, lendian, oobFDs):
     return 2, struct.unpack_from( lendian and '<h' or '>h', data, offset)[0]
 
-def unmarshal_uint16(ct, data, offset, lendian):
+def unmarshal_uint16(ct, data, offset, lendian, oobFDs):
     return 2, struct.unpack_from( lendian and '<H' or '>H', data, offset)[0]
 
-def unmarshal_int32(ct, data, offset, lendian):
+def unmarshal_int32(ct, data, offset, lendian, oobFDs):
     return 4, struct.unpack_from( lendian and '<i' or '>i', data, offset)[0]
 
-def unmarshal_uint32(ct, data, offset, lendian):
+def unmarshal_uint32(ct, data, offset, lendian, oobFDs):
     return 4, struct.unpack_from( lendian and '<I' or '>I', data, offset)[0]
 
-def unmarshal_int64(ct, data, offset, lendian):
+def unmarshal_int64(ct, data, offset, lendian, oobFDs):
     return 8, struct.unpack_from( lendian and '<q' or '>q', data, offset)[0]
 
-def unmarshal_uint64(ct, data, offset, lendian):
+def unmarshal_uint64(ct, data, offset, lendian, oobFDs):
     return 8, struct.unpack_from( lendian and '<Q' or '>Q', data, offset)[0]
 
-def unmarshal_double(ct, data, offset, lendian):
+def unmarshal_double(ct, data, offset, lendian, oobFDs):
     return 8, struct.unpack_from( lendian and '<d' or '>d', data, offset)[0]
+
+def unmarshal_unix_fd(ct, data, offset, lendian, oobFDs):
+    index = struct.unpack_from( lendian and '<I' or '>I', data, offset)[0]
+    try:
+        fd = oobFDs[index]
+    except IndexError:
+        fd = None
+    return 4, fd
 
 
 # STRING:
@@ -663,7 +679,7 @@ def unmarshal_double(ct, data, offset, lendian):
 #       2 - string data (no embedded nuls)
 #       3 - terminating nul byte
 #
-def unmarshal_string(ct, data, offset, lendian):
+def unmarshal_string(ct, data, offset, lendian, oobFDs):
     slen = struct.unpack_from( lendian and '<I' or '>I', data, offset)[0]
     s = codecs.decode(data[ offset + 4 :  offset + 4 + slen ], 'utf-8')
     return 4 + slen + 1, s
@@ -683,7 +699,7 @@ unmarshal_object_path = unmarshal_string
 #       1 - Single byte length
 #       2 - Valid signature string
 #       3 - terminating nul byte
-def unmarshal_signature(ct, data, offset, lendian):
+def unmarshal_signature(ct, data, offset, lendian, oobFDs):
     slen = struct.unpack_from( lendian and '<B' or '>B', data, offset)[0]
     s = codecs.decode(data[ offset + 1 : offset + 1 + slen ], 'ascii')
     return 1 + slen + 1, s
@@ -695,7 +711,7 @@ def unmarshal_signature(ct, data, offset, lendian):
 #       1 - UINT32 length of array data (does not include alignment padding)
 #       2 - Padding to required alignment of contained data type
 #       3 - each array element
-def unmarshal_array(ct, data, offset, lendian):
+def unmarshal_array(ct, data, offset, lendian, oobFDs):
     start_offset = offset
     values       = list()
     data_len     = struct.unpack_from( lendian and '<I' or '>I', data, offset)[0]
@@ -711,7 +727,7 @@ def unmarshal_array(ct, data, offset, lendian):
 
         offset += len(pad[tcode](offset))
         
-        nbytes, value = unmarshallers[ tcode ]( tsig, data, offset, lendian )
+        nbytes, value = unmarshallers[ tcode ]( tsig, data, offset, lendian, oobFDs )
 
         offset += nbytes
         values.append( value )
@@ -732,8 +748,8 @@ def unmarshal_array(ct, data, offset, lendian):
 #    - Must start on 8 byte boundary
 #    - Content consists of each field marshaled in sequence
 #
-def unmarshal_struct(ct, data, offset, lendian):
-    return unmarshal( ct[1:-1], data, offset, lendian )
+def unmarshal_struct(ct, data, offset, lendian, oobFDs):
+    return unmarshal( ct[1:-1], data, offset, lendian, oobFDs )
 
 
 unmarshal_dictionary = unmarshal_struct
@@ -745,16 +761,16 @@ unmarshal_dictionary = unmarshal_struct
 #       1 - Marshaled SIGNATURE
 #       2 - Any required padding to align the type specified in the signature
 #       3 - Marshaled value
-def unmarshal_variant(ct, data, offset, lendian):
+def unmarshal_variant(ct, data, offset, lendian, oobFDs):
     # XXX: ensure only a single, complete type is in the siguature
     start_offset = offset
-    nsig, vsig = unmarshal_signature( ct, data, offset, lendian )
+    nsig, vsig = unmarshal_signature( ct, data, offset, lendian, oobFDs )
 
     offset += nsig
     
     offset += len(pad[vsig[0]](offset))
 
-    nvar, value = unmarshal( vsig, data, offset, lendian )
+    nvar, value = unmarshal( vsig, data, offset, lendian, oobFDs )
 
     offset += nvar
     
@@ -779,10 +795,10 @@ unmarshallers = { 'y' : unmarshal_byte,
                   '(' : unmarshal_struct,
                   'v' : unmarshal_variant,
                   '{' : unmarshal_dictionary,
-                  'h' : unmarshal_uint32 }
+                  'h' : unmarshal_unix_fd }
 
 
-def unmarshal( compoundSignature, data, offset = 0, lendian = True ):
+def unmarshal( compoundSignature, data, offset = 0, lendian = True, oobFDs = None ):
     """
     Unmarshals DBus encoded data.
 
@@ -808,7 +824,7 @@ def unmarshal( compoundSignature, data, offset = 0, lendian = True ):
         tcode   = ct[0]
         offset += len(pad[tcode]( offset ))
                 
-        nbytes, value = unmarshallers[ tcode ]( ct, data, offset, lendian )
+        nbytes, value = unmarshallers[ tcode ]( ct, data, offset, lendian, oobFDs )
 
         offset += nbytes
         values.append( value )

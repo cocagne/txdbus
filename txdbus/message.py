@@ -73,7 +73,7 @@ class DBusMessage (object):
 #                print '    %s = %s' % (a.ljust(15), str(getattr(self,a)))
 
     
-    def _marshal(self, newSerial=True):
+    def _marshal(self, newSerial=True, oobFDs=None):
         """
         Encodes the message into binary format. The resulting binary message is
         stored in C{self.rawMessage}
@@ -86,9 +86,23 @@ class DBusMessage (object):
         if not self.autoStart:
             flags |= 0x2
         
+        # may be overriden below, depending on oobFDs
+        _headerAttrs = self._headerAttrs
+
+        # marshal body before headers to know if the 'unix_fd' header is needed
+        if self.signature:
+            binBody = b''.join(marshal.marshal(self.signature, self.body, oobFDs=oobFDs)[1])
+            if oobFDs:
+                # copy class based _headerAttrs to add a unix_fds header this time
+                _headerAttrs = list(self._headerAttrs)
+                _headerAttrs.append(('unix_fds', 9, False))
+                self.unix_fds = len(oobFDs)
+        else:
+            binBody = b''
+
         self.headers = list()
         
-        for attr_name, code, is_required in self._headerAttrs:
+        for attr_name, code, is_required in _headerAttrs:
             hval = getattr(self, attr_name, None)
             
             if hval is not None:
@@ -96,13 +110,10 @@ class DBusMessage (object):
                     hval = marshal.ObjectPath(hval)
                 elif attr_name == 'signature':
                     hval = marshal.Signature(hval)
+                elif attr_name == 'unix_fds':
+                    hval = marshal.UInt32(hval)
                     
                 self.headers.append( [code, hval] )
-
-        if self.signature:
-            binBody = b''.join( marshal.marshal( self.signature, self.body )[1] )
-        else:
-            binBody = b''
 
         self.bodyLength = len(binBody)
 
@@ -150,7 +161,7 @@ class MethodCallMessage (DBusMessage):
 
     def __init__(self, path, member, interface=None, destination=None,
                  signature=None, body=None,
-                 expectReply=True, autoStart=True):
+                 expectReply=True, autoStart=True, oobFDs=None):
         """
         @param path: C{str} DBus object path
         @param member: C{str} Member name
@@ -187,7 +198,7 @@ class MethodCallMessage (DBusMessage):
         self.expectReply  = expectReply
         self.autoStart    = autoStart
 
-        self._marshal()
+        self._marshal(oobFDs=oobFDs)
         
 
 
@@ -320,9 +331,10 @@ _hcode = { 1 : 'path',
            9 : 'unix_fds' }
 
 
-def parseMessage( rawMessage ):
+def parseMessage( rawMessage, oobFDs ):
     """
-    Parses the raw binary message and returns a L{DBusMessage} subclass
+    Parses the raw binary message and returns a L{DBusMessage} subclass.
+    Unmarshalling DBUS 'h' (UNIX_FD) gets the FDs from the oobFDs list.
 
     @type rawMessage: C{str}
     @param rawMessage: Raw binary message to parse
@@ -334,7 +346,7 @@ def parseMessage( rawMessage ):
 
     lendian = rawMessage[0] == b'l'[0]
     
-    nheader, hval = marshal.unmarshal(_headerFormat, rawMessage, 0, lendian)
+    nheader, hval = marshal.unmarshal(_headerFormat, rawMessage, 0, lendian, oobFDs)
 
     messageType = hval[1]
 
@@ -360,7 +372,7 @@ def parseMessage( rawMessage ):
             pass
         
     if m.signature:
-        nbytes, m.body = marshal.unmarshal(m.signature, m.rawBody, lendian = lendian)
+        nbytes, m.body = marshal.unmarshal(m.signature, m.rawBody, lendian = lendian, oobFDs=oobFDs)
 
     return m
 
