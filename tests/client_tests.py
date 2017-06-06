@@ -15,7 +15,7 @@ import tempfile
 import twisted
 from twisted.internet import reactor, defer
 
-from txdbus import objects, endpoints, bus, error, client, introspection
+from txdbus import objects, endpoints, error, client, introspection
 from txdbus.interface import DBusInterface, Method, Signal, Property
 
 from txdbus.objects import dbusMethod, DBusProperty
@@ -182,9 +182,6 @@ class ConnectionTest(SimpleObjectTester):
         return d
 
     def test_no_valid_endpoints(self):
-        bad1 = 'unix:abstract=/tmp/FOOBARBAZBLICK,guid=5'
-        bad2 = 'tcp:host=127.0.0.99,port=0,family="ipv4",guid=5'
-
         d = client.connect(reactor, '' )
 
         def ok(conn):
@@ -1154,26 +1151,26 @@ class ComplexObjectTester(ServerObjectTester):
             k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
-            return [(x,d[x]) for x in k]
+            return r
 
         def dbus_testDictToTuples2(self, d):
             k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
-            return ([(x,d[x]) for x in k], 6)
+            return (r, 6)
 
         def dbus_testDictToTuples3(self, d):
             k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
-            return (2, [(x,d[x]) for x in k], 6)
+            return (2, r, 6)
         
         def dbus_testDictToTuples4(self, tpl):
             d = tpl[0]
             k = list(d.keys())
             k.sort()
             r = [(x,d[x]) for x in k]
-            return (2, [(x,d[x]) for x in k], 6)
+            return (2, r, 6)
 
 
         def dbus_testCaller(self, dbusCaller = None):
@@ -1436,7 +1433,7 @@ class InterfaceTester(ServerObjectTester):
         
 
         def __init__(self, object_path):
-            x = self.pif1 # test property access prior to object construction
+            self.pif1 # test property access prior to object construction
             
             objects.DBusObject.__init__(self, object_path)
 
@@ -1626,7 +1623,7 @@ class InterfaceTester(ServerObjectTester):
         return self.proxy_chain(got_object, got_reply)
 
 
-    def test_foo(self):
+    def test_foo2(self):
 
         def got_object(ro):
             return ro.callRemote('testMethod', 'foo')
@@ -2070,7 +2067,7 @@ class BusNameTest(SimpleObjectTester):
 
     def test_get_connection_user(self):
         try:
-            import pwd
+            import pwd  # noqa: This is acceptable, since it's kind of a hack.
         except ImportError:
             # non-unix system. just return success
             self.assertTrue(True)
@@ -2095,7 +2092,7 @@ class BusNameTest(SimpleObjectTester):
 
     def test_bad_get_connection_user1(self):
         try:
-            import pwd
+            import pwd  # noqa: This is acceptable, since it's kind of a hack.
         except ImportError:
             # non-unix system. just return success
             self.assertTrue(True)

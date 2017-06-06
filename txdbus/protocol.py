@@ -10,7 +10,7 @@ import six
 
 from   zope.interface import Interface, implementer
 
-from   twisted.internet import protocol, defer, error
+from   twisted.internet import protocol
 from   twisted.python import log
 
 from   twisted.internet import interfaces

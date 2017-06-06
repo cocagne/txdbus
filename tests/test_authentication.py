@@ -6,14 +6,12 @@ import shutil
 import getpass
 import time
 
-import six
-
 from zope.interface import implementer
 
 from twisted.trial import unittest
 
 from twisted.internet.protocol import Factory
-from twisted.internet import reactor, defer, protocol, error, interfaces
+from twisted.internet import reactor, defer, protocol, interfaces
 
 from txdbus import bus, endpoints, authentication
 from txdbus.authentication import DBusAuthenticationFailed
