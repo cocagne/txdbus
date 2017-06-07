@@ -755,7 +755,7 @@ class DBusObjectHandler (object):
             return
 
         if (
-                msg.interface == 'org.freedesktop.DBus.Introspectable' and 
+                msg.interface == 'org.freedesktop.DBus.Introspectable' and
                 msg.member == 'Introspect'
         ):
             xml = introspection.generateIntrospectionXML(
@@ -786,7 +786,7 @@ class DBusObjectHandler (object):
             return
 
         if (
-                msg.interface == 'org.freedesktop.DBus.ObjectManager' and 
+                msg.interface == 'org.freedesktop.DBus.ObjectManager' and
                 msg.member == 'GetManagedObjects'
         ):
             i_and_p = self.getManagedObjects(o.getObjectPath())
@@ -824,13 +824,13 @@ class DBusObjectHandler (object):
                 'org.freedesktop.DBus.Error.UnknownMethod',
                 (
                     'Method "%s" with signature "%s" on interface "%s" '
-                    'doesn\'t exist' 
+                    'doesn\'t exist'
                 ) % (
                     msg.member, msg.signature or '',
                     msg.interface or '(null)',
                 ),
             )
-            
+
             return
 
         msig = msg.signature if msg.signature is not None else ''
