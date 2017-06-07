@@ -83,8 +83,10 @@ class FDObject(objects.DBusObject):
             interface.Method('readBytesTwoFDs', arguments='hht', returns='ay')
         )
     else:
-        print('Twisted version < %s, not exposing %r' % (_minTxVersion.base(),
-            'readBytesTwoFDs'))
+        print('Twisted version < %s, not exposing %r' % (
+            _minTxVersion.base(),
+            'readBytesTwoFDs'
+        ))
     del _minTxVersion
 
     dbusInterfaces = [interface.DBusInterface(*_methods)]
@@ -111,7 +113,6 @@ def main(reactor):
 
 
 if __name__ == '__main__':
-
     reactor.callWhenRunning(main, reactor)
     reactor.run()
 

@@ -30,20 +30,23 @@ class Method (object):
                     signature string as defined by the DBus specification.
     """
     __slots__ = ['name', 'nargs', 'nret', 'sigIn', 'sigOut']
-    def __init__(self, name, arguments='', returns='' ):
-        self.name    = name
-        self.nargs   = -1
-        self.nret    = -1
-        self.sigIn  = arguments
+
+    def __init__(self, name, arguments='', returns=''):
+        self.name = name
+        self.nargs = -1
+        self.nret = -1
+        self.sigIn = arguments
         self.sigOut = returns
         if arguments.count('h') > 1:
             # More than one UNIX_FD argument requires Twisted >= 17.1.0.
             minTxVersion = '17.1.0'
             if twisted.version.base() < minTxVersion:
-                raise RuntimeError('Method %r with multiple UNIX_FD arguments '
-                    'requires Twisted >= %s' % (name, minTxVersion))
+                raise RuntimeError(
+                    'Method %r with multiple UNIX_FD arguments requires '
+                    'Twisted >= %s' % (name, minTxVersion)
+                )
 
-        
+
 class Signal (object):
     """
     Represents a Signal declaration in a DBus Interface
@@ -57,11 +60,11 @@ class Signal (object):
                       signature string as defined by the DBus specification.
     """
     __slots__ = ['name', 'nargs', 'sig']
-    def __init__(self, name, arguments=''):
-        self.name    = name
-        self.nargs   = -1
-        self.sig     = arguments
 
+    def __init__(self, name, arguments=''):
+        self.name = name
+        self.nargs = -1
+        self.sig = arguments
 
 
 class Property (object):
@@ -82,12 +85,15 @@ class Property (object):
 
     @type emitsOnChange: C{bool}
     @param emitsOnChange: True if changes to the property result in a
-    org.freedesktop.DBus.Properties.PropertiesChanged signal being emitted (defaults to True)
+        org.freedesktop.DBus.Properties.PropertiesChanged signal being emitted
+        (defaults to True)
     """
     __slots__ = ['name', 'sig', 'access', 'emits']
-    def __init__(self, name, sig, readable=True, writeable=False, emitsOnChange=True):
-        self.name   = name
-        self.sig    = sig
+
+    def __init__(self, name, sig, readable=True,
+                 writeable=False, emitsOnChange=True):
+        self.name = name
+        self.sig = sig
 
         if writeable and not readable:
             self.access = 'write'
@@ -98,16 +104,18 @@ class Property (object):
         else:
             self.access = 'read'
 
-        if not emitsOnChange in (True, False, 'invalidates'):
-            raise TypeError('emitsOnChange parameter must be one of True, False, or "invalidates"')
+        if emitsOnChange not in (True, False, 'invalidates'):
+            raise TypeError(
+                'emitsOnChange parameter must be one of True, False, or '
+                '"invalidates"',
+            )
 
-        if type(emitsOnChange) is bool:
+        if isinstance(emitsOnChange, bool):
             self.emits = 'true' if emitsOnChange else 'false'
         else:
-            self.emits  = emitsOnChange
-            
+            self.emits = emitsOnChange
 
-    
+
 class DBusInterface (object):
     """
     Represents a DBus Interface Definition. The introspectionXml property
@@ -122,22 +130,22 @@ class DBusInterface (object):
     @type introspectionXml: C{string}
     @ivar introspectionXml: XML string containing the interface definition
     """
-    
+
     knownInterfaces = dict()
-    
+
     def __init__(self, name, *args, **kwargs):
         """
         Method and fSignal instances to be included in the interface may be
         passed as additional positional parameters after 'name'.
 
-        @keyword noRegister: If passed as a keyword argument this prevents the interface
-                             definition from being cached for future use
+        @keyword noRegister: If passed as a keyword argument this prevents the
+            interface definition from being cached for future use
         """
-        self.name       = name
-        self.methods    = dict()
-        self.signals    = dict()
+        self.name = name
+        self.methods = dict()
+        self.signals = dict()
         self.properties = dict()
-        self._xml       = None
+        self._xml = None
 
         for x in args:
             if isinstance(x, Method):
@@ -149,36 +157,32 @@ class DBusInterface (object):
             else:
                 raise TypeError('Invalid interface argument: %s' % (repr(x),))
 
-        if not 'noRegister' in kwargs:
-            self.knownInterfaces[ name ] = self
-        
+        if 'noRegister' not in kwargs:
+            self.knownInterfaces[name] = self
 
     def addMethod(self, m):
         """
         Adds a L{Method} to the interface
         """
         if m.nargs == -1:
-            m.nargs = len( [ a for a in marshal.genCompleteTypes( m.sigIn ) ] )
-            m.nret  = len( [ a for a in marshal.genCompleteTypes( m.sigOut ) ] )
-        self.methods[ m.name ] = m
+            m.nargs = len([a for a in marshal.genCompleteTypes(m.sigIn)])
+            m.nret = len([a for a in marshal.genCompleteTypes(m.sigOut)])
+        self.methods[m.name] = m
         self._xml = None
 
-        
     def addSignal(self, s):
         """
         Adds a L{Signal} to the interface
         """
         if s.nargs == -1:
-            s.nargs = len( [ a for a in marshal.genCompleteTypes( s.sig ) ] )
-        self.signals[ s.name ] = s
+            s.nargs = len([a for a in marshal.genCompleteTypes(s.sig)])
+        self.signals[s.name] = s
         self._xml = None
 
-        
     def addProperty(self, p):
-        self.properties[ p.name ] = p
+        self.properties[p.name] = p
         self._xml = None
 
-        
     def delMethod(self, name):
         """
         Deletes the named method
@@ -186,55 +190,59 @@ class DBusInterface (object):
         del self.methods[name]
         self._xml = None
 
-        
     def delSignal(self, name):
         """
         Deletes the named signal
         """
-        del self.signals[ name ]
+        del self.signals[name]
         self._xml = None
 
-        
     def delProperty(self, name):
         """
         Deletes the named property
         """
-        del self.properties[ name ]
+        del self.properties[name]
         self._xml = None
 
-
     def _getXml(self):
-#        """
-#        @returns: an XML description of the interface
-#        @rtype: C{string}
-#        """
+        #        """
+        #        @returns: an XML description of the interface
+        #        @rtype: C{string}
+        #        """
         if self._xml is None:
             l = list()
             l.append('  <interface name="%s">' % (self.name,))
 
-            k = list(six.iterkeys(self.methods))
-            k.sort()
-            for m in ( self.methods[a] for a in k ):
+            k = sorted(six.iterkeys(self.methods))
+            for m in (self.methods[a] for a in k):
                 l.append('    <method name="%s">' % (m.name,))
-                for arg_sig in marshal.genCompleteTypes( m.sigIn ):
-                    l.append('      <arg direction="in" type="%s"/>' % (arg_sig,))
-                for arg_sig in marshal.genCompleteTypes( m.sigOut ):
-                    l.append('      <arg direction="out" type="%s"/>' % (arg_sig,))
+                for arg_sig in marshal.genCompleteTypes(m.sigIn):
+                    l.append(
+                        '      <arg direction="in" type="%s"/>' %
+                        (arg_sig,))
+                for arg_sig in marshal.genCompleteTypes(m.sigOut):
+                    l.append(
+                        '      <arg direction="out" type="%s"/>' %
+                        (arg_sig,))
                 l.append('    </method>')
 
-            k = list(six.iterkeys(self.signals))
-            k.sort()
-            for s in ( self.signals[a] for a in k ):
+            k = sorted(six.iterkeys(self.signals))
+            for s in (self.signals[a] for a in k):
                 l.append('    <signal name="%s">' % (s.name,))
-                for arg_sig in marshal.genCompleteTypes( s.sig ):
+                for arg_sig in marshal.genCompleteTypes(s.sig):
                     l.append('      <arg type="%s"/>' % (arg_sig,))
                 l.append('    </signal>')
 
             k = list(six.iterkeys(self.properties))
             k.sort()
-            for p in ( self.properties[a] for a in k ):
-                l.append('    <property name="%s" type="%s" access="%s">' % (p.name, p.sig, p.access,))
-                l.append('      <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="%s"/>' % (p.emits,))
+            for p in (self.properties[a] for a in k):
+                l.append(
+                    '    <property name="%s" type="%s" access="%s">' %
+                    (p.name, p.sig, p.access,))
+                l.append(
+                    '      <annotation name="org.freedesktop.DBus.Property.'
+                    'EmitsChangedSignal" value="%s"/>' %
+                    (p.emits,))
                 l.append('    </property>')
 
             l.append('  </interface>')
@@ -244,17 +252,19 @@ class DBusInterface (object):
 
     introspectionXml = property(_getXml)
 
-    #def printSelf(self):
-    #    """
-    #    Debugging utility that prints the interface to standard output
-    #    """
-    #    print 'Interface: ', self.name
-    #    def sdict(d):
-    #        l = d.keys()
-    #        l.sort()
-    #        return [ d[x] for x in l ]
-    #    for m in sdict(self.methods):
-    #        print '    Method:', m.name, ' in =', m.sigIn, ' out =', m.sigOut
+    # def printSelf(self):
+    #     """
+    #     Debugging utility that prints the interface to standard output
+    #     """
+    #     print('Interface: ', self.name)
     #
-    #    for s in sdict(self.signals):
-    #        print '    Signals:', s.name, ' sig =', s.sig
+    #     def sdict(d):
+    #         l = d.keys()
+    #         l.sort()
+    #         return [d[x] for x in l]
+    #
+    #     for m in sdict(self.methods):
+    #        print('    Method:', m.name, ' in =', m.sigIn, ' out =', m.sigOut)
+    #
+    #     for s in sdict(self.signals):
+    #         print('    Signals:', s.name, ' sig =', s.sig)

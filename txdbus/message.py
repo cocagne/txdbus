@@ -8,7 +8,7 @@ from txdbus import marshal, error
 
 _headerFormat = 'yyyyuua(yv)'
 
-    
+
 class DBusMessage (object):
     """
     Abstract base class for DBus messages
@@ -28,36 +28,36 @@ class DBusMessage (object):
     @ivar path: C{str} DBus object path
     @ivar sender: C{str} DBus bus name for sending connection
     @ivar destination: C{str} DBus bus name for destination connection
-    
+
     """
-    _maxMsgLen         = 2**27
-    _nextSerial        = 1
-    _protocolVersion   = 1
+    _maxMsgLen = 2**27
+    _nextSerial = 1
+    _protocolVersion = 1
 
     # Overriden by subclasses
-    _messageType       = 0    
-    _headerAttrs       = None # [(attr_name, code, is_required), ...]
+    _messageType = 0
+    _headerAttrs = None  # [(attr_name, code, is_required), ...]
 
     # Set prior to marshal or during/after unmarshalling
-    expectReply        = True 
-    autoStart          = True
-    signature          = None
-    body               = None
+    expectReply = True
+    autoStart = True
+    signature = None
+    body = None
 
     # Set during marshalling/unmarshalling
-    endian             = ord('l')
-    bodyLength         = 0     
-    serial             = None
-    headers            = None
-    rawMessage         = None
+    endian = ord('l')
+    bodyLength = 0
+    serial = None
+    headers = None
+    rawMessage = None
 
     # Required/Optional
-    interface          = None
-    path               = None
-    
+    interface = None
+    path = None
+
     # optional
-    sender             = None
-    destination        = None
+    sender = None
+    destination = None
 
 
 #    def printSelf(self):
@@ -72,7 +72,6 @@ class DBusMessage (object):
 #            if not a.startswith('raw'):
 #                print '    %s = %s' % (a.ljust(15), str(getattr(self,a)))
 
-    
     def _marshal(self, newSerial=True, oobFDs=None):
         """
         Encodes the message into binary format. The resulting binary message is
@@ -85,15 +84,22 @@ class DBusMessage (object):
 
         if not self.autoStart:
             flags |= 0x2
-        
+
         # may be overriden below, depending on oobFDs
         _headerAttrs = self._headerAttrs
 
         # marshal body before headers to know if the 'unix_fd' header is needed
         if self.signature:
-            binBody = b''.join(marshal.marshal(self.signature, self.body, oobFDs=oobFDs)[1])
+            binBody = b''.join(
+                marshal.marshal(
+                    self.signature,
+                    self.body,
+                    oobFDs=oobFDs
+                )[1]
+            )
             if oobFDs:
-                # copy class based _headerAttrs to add a unix_fds header this time
+                # copy class based _headerAttrs to add a unix_fds header this
+                # time
                 _headerAttrs = list(self._headerAttrs)
                 _headerAttrs.append(('unix_fds', 9, False))
                 self.unix_fds = len(oobFDs)
@@ -101,10 +107,10 @@ class DBusMessage (object):
             binBody = b''
 
         self.headers = list()
-        
+
         for attr_name, code, is_required in _headerAttrs:
             hval = getattr(self, attr_name, None)
-            
+
             if hval is not None:
                 if attr_name == 'path':
                     hval = marshal.ObjectPath(hval)
@@ -112,8 +118,8 @@ class DBusMessage (object):
                     hval = marshal.Signature(hval)
                 elif attr_name == 'unix_fds':
                     hval = marshal.UInt32(hval)
-                    
-                self.headers.append( [code, hval] )
+
+                self.headers.append([code, hval])
 
         self.bodyLength = len(binBody)
 
@@ -121,29 +127,34 @@ class DBusMessage (object):
             self.serial = DBusMessage._nextSerial
 
             DBusMessage._nextSerial += 1
-        
-        binHeader = b''.join(marshal.marshal(_headerFormat,
-                                            [self.endian,
-                                             self._messageType,
-                                             flags,
-                                             self._protocolVersion,
-                                             self.bodyLength,
-                                             self.serial,
-                                             self.headers],
-                                            lendian = self.endian == ord('l') )[1])
-        
-        headerPadding = marshal.pad['header']( len(binHeader) )
 
-        self.rawHeader  = binHeader
+        binHeader = b''.join(marshal.marshal(
+            _headerFormat,
+            [
+                self.endian,
+                self._messageType,
+                flags,
+                self._protocolVersion,
+                self.bodyLength,
+                self.serial,
+                self.headers
+            ],
+            lendian=self.endian == ord('l')
+        )[1])
+
+        headerPadding = marshal.pad['header'](len(binHeader))
+
+        self.rawHeader = binHeader
         self.rawPadding = headerPadding
-        self.rawBody    = binBody
-        
-        self.rawMessage = b''.join( [binHeader, headerPadding, binBody] )
+        self.rawBody = binBody
+
+        self.rawMessage = b''.join([binHeader, headerPadding, binBody])
 
         if len(self.rawMessage) > self._maxMsgLen:
-            raise error.MarshallingError('Marshalled message exceeds maximum message size of %d' %
-                                         (self._maxMsgLen,))
-
+            raise error.MarshallingError(
+                'Marshalled message exceeds maximum message size of %d' %
+                (self._maxMsgLen,),
+            )
 
 
 class MethodCallMessage (DBusMessage):
@@ -151,13 +162,14 @@ class MethodCallMessage (DBusMessage):
     A DBus Method Call Message
     """
     _messageType = 1
-    _headerAttrs = [ ('path',        1, True ),
-                     ('interface',   2, False),
-                     ('member',      3, True ),
-                     ('destination', 6, False),
-                     ('sender',      7, False),
-                     ('signature',   8, False) ]
-
+    _headerAttrs = [
+        ('path', 1, True),
+        ('interface', 2, False),
+        ('member', 3, True),
+        ('destination', 6, False),
+        ('sender', 7, False),
+        ('signature', 8, False)
+    ]
 
     def __init__(self, path, member, interface=None, destination=None,
                  signature=None, body=None,
@@ -177,29 +189,29 @@ class MethodCallMessage (DBusMessage):
         @param autoStart: True if the Bus should auto-start a service to handle
                           this message if the service is not already running.
         """
-        
-        marshal.validateMemberName( member )
-        
+
+        marshal.validateMemberName(member)
+
         if interface:
             marshal.validateInterfaceName(interface)
-            
+
         if destination:
             marshal.validateBusName(destination)
 
         if path == '/org/freedesktop/DBus/Local':
-            raise error.MarshallingError('/org/freedesktop/DBus/Local is a reserved path')
-            
-        self.path         = path
-        self.member       = member
-        self.interface    = interface
-        self.destination  = destination
-        self.signature    = signature
-        self.body         = body
-        self.expectReply  = expectReply
-        self.autoStart    = autoStart
+            raise error.MarshallingError(
+                '/org/freedesktop/DBus/Local is a reserved path')
+
+        self.path = path
+        self.member = member
+        self.interface = interface
+        self.destination = destination
+        self.signature = signature
+        self.body = body
+        self.expectReply = expectReply
+        self.autoStart = autoStart
 
         self._marshal(oobFDs=oobFDs)
-        
 
 
 class MethodReturnMessage (DBusMessage):
@@ -207,13 +219,15 @@ class MethodReturnMessage (DBusMessage):
     A DBus Method Return Message
     """
     _messageType = 2
-    _headerAttrs = [ ('reply_serial', 5, True ),
-                     ('destination',  6, False),
-                     ('sender',       7, False),
-                     ('signature',    8, False) ]
+    _headerAttrs = [
+        ('reply_serial', 5, True),
+        ('destination', 6, False),
+        ('sender', 7, False),
+        ('signature', 8, False),
+    ]
 
-    def __init__(self, reply_serial, body=None,
-                 destination=None, signature=None):
+    def __init__(self, reply_serial, body=None, destination=None,
+                 signature=None):
         """
         @param reply_serial: C{int} serial number this message is a reply to
         @param destination: C{str} DBus bus name for message destination or
@@ -227,9 +241,9 @@ class MethodReturnMessage (DBusMessage):
             marshal.validateBusName(destination)
 
         self.reply_serial = marshal.UInt32(reply_serial)
-        self.destination  = destination
-        self.signature    = signature
-        self.body         = body
+        self.destination = destination
+        self.signature = signature
+        self.body = body
 
         self._marshal()
 
@@ -239,14 +253,16 @@ class ErrorMessage (DBusMessage):
     A DBus Error Message
     """
     _messageType = 3
-    _headerAttrs = [ ('error_name',   4, True ),
-                     ('reply_serial', 5, True ),
-                     ('destination',  6, False),
-                     ('sender',       7, False),
-                     ('signature',    8, False) ]
+    _headerAttrs = [
+        ('error_name', 4, True),
+        ('reply_serial', 5, True),
+        ('destination', 6, False),
+        ('sender', 7, False),
+        ('signature', 8, False),
+    ]
 
-    def __init__(self, error_name, reply_serial, destination=None, signature=None,
-                 body=None, sender=None):
+    def __init__(self, error_name, reply_serial, destination=None,
+                 signature=None, body=None, sender=None):
         """
         @param error_name: C{str} DBus error name
         @param reply_serial: C{int} serial number this message is a reply to
@@ -263,31 +279,32 @@ class ErrorMessage (DBusMessage):
 
         marshal.validateInterfaceName(error_name)
 
-        self.error_name   = error_name
+        self.error_name = error_name
         self.reply_serial = marshal.UInt32(reply_serial)
-        self.destination  = destination
-        self.signature    = signature
-        self.body         = body
-        self.sender       = sender
+        self.destination = destination
+        self.signature = signature
+        self.body = body
+        self.sender = sender
 
         self._marshal()
 
 
-        
 class SignalMessage (DBusMessage):
     """
     A DBus Signal Message
     """
     _messageType = 4
-    _headerAttrs = [ ('path',        1, True ),
-                     ('interface',   2, True ),
-                     ('member',      3, True ),
-                     ('destination', 6, False),
-                     ('sender',      7, False),
-                     ('signature',   8, False) ]
+    _headerAttrs = [
+        ('path', 1, True),
+        ('interface', 2, True),
+        ('member', 3, True),
+        ('destination', 6, False),
+        ('sender', 7, False),
+        ('signature', 8, False),
+    ]
 
-    def __init__(self, path, member, interface, destination=None, signature=None,
-                 body=None):
+    def __init__(self, path, member, interface, destination=None,
+                 signature=None, body=None):
         """
         @param path: C{str} DBus object path of the object sending the signal
         @param member: C{str} Member name
@@ -299,39 +316,43 @@ class SignalMessage (DBusMessage):
         @param body: C{list} of python objects to encode. Objects must match
                      the C{self.signature}
         """
-        marshal.validateMemberName( member )
+        marshal.validateMemberName(member)
         marshal.validateInterfaceName(interface)
-            
+
         if destination:
             marshal.validateBusName(destination)
-            
-        self.path        = path
-        self.member      = member
-        self.interface   = interface
+
+        self.path = path
+        self.member = member
+        self.interface = interface
         self.destination = destination
-        self.signature   = signature
-        self.body        = body
+        self.signature = signature
+        self.body = body
 
         self._marshal()
 
 
-_mtype = { 1 : MethodCallMessage,
-           2 : MethodReturnMessage,
-           3 : ErrorMessage,
-           4 : SignalMessage }
+_mtype = {
+    1: MethodCallMessage,
+    2: MethodReturnMessage,
+    3: ErrorMessage,
+    4: SignalMessage,
+}
 
-_hcode = { 1 : 'path',
-           2 : 'interface',
-           3 : 'member',
-           4 : 'error_name',
-           5 : 'reply_serial',
-           6 : 'destination',
-           7 : 'sender',
-           8 : 'signature',
-           9 : 'unix_fds' }
+_hcode = {
+    1: 'path',
+    2: 'interface',
+    3: 'member',
+    4: 'error_name',
+    5: 'reply_serial',
+    6: 'destination',
+    7: 'sender',
+    8: 'signature',
+    9: 'unix_fds',
+}
 
 
-def parseMessage( rawMessage, oobFDs ):
+def parseMessage(rawMessage, oobFDs):
     """
     Parses the raw binary message and returns a L{DBusMessage} subclass.
     Unmarshalling DBUS 'h' (UNIX_FD) gets the FDs from the oobFDs list.
@@ -345,39 +366,46 @@ def parseMessage( rawMessage, oobFDs ):
     """
 
     lendian = rawMessage[0] == b'l'[0]
-    
-    nheader, hval = marshal.unmarshal(_headerFormat, rawMessage, 0, lendian, oobFDs)
+
+    nheader, hval = marshal.unmarshal(
+        _headerFormat,
+        rawMessage,
+        0,
+        lendian,
+        oobFDs,
+    )
 
     messageType = hval[1]
 
-    if not messageType in _mtype:
-        raise error.MarshallingError('Unknown Message Type: ' + str(messageType))
+    if messageType not in _mtype:
+        raise error.MarshallingError(
+            'Unknown Message Type: ' + str(messageType)
+        )
 
-    m = object.__new__( _mtype[messageType] )
+    m = object.__new__(_mtype[messageType])
 
     m.rawHeader = rawMessage[:nheader]
 
-    npad = nheader % 8 and (8 - nheader%8) or 0
+    npad = nheader % 8 and (8 - nheader % 8) or 0
 
-    m.rawPadding = rawMessage[nheader: nheader+npad]
+    m.rawPadding = rawMessage[nheader: nheader + npad]
 
-    m.rawBody = rawMessage[ nheader + npad: ]
+    m.rawBody = rawMessage[nheader + npad:]
 
     m.serial = hval[5]
-    
+
     for code, v in hval[6]:
         try:
             setattr(m, _hcode[code], v)
         except KeyError:
             pass
-        
+
     if m.signature:
-        nbytes, m.body = marshal.unmarshal(m.signature, m.rawBody, lendian = lendian, oobFDs=oobFDs)
+        nbytes, m.body = marshal.unmarshal(
+            m.signature,
+            m.rawBody,
+            lendian=lendian,
+            oobFDs=oobFDs,
+        )
 
     return m
-
-    
-        
-        
-        
-        

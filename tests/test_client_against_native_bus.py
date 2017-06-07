@@ -20,14 +20,16 @@ if 'DBUS_SESSION_BUS_ADDRESS' in os.environ:
 
         def _teardown(self):
             pass
-            
-    
+
     # "Copy" the objects unit tests into this module
-    m = sys.modules[ __name__ ]
+    m = sys.modules[__name__]
 
-    for k,v in six.iteritems(client_tests.__dict__):
-        if isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester) \
-                    and v is not client_tests.ServerObjectTester:
-            setattr(m, k, type(k, (NativeBusMixin, v, unittest.TestCase), dict()))
-
-
+    for k, v in six.iteritems(client_tests.__dict__):
+        if (
+            isinstance(v, type) and
+            issubclass(v, client_tests.ServerObjectTester) and
+            v is not client_tests.ServerObjectTester
+        ):
+            setattr(m, k, type(
+                k, (NativeBusMixin, v, unittest.TestCase), {}
+            ))

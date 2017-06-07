@@ -11,7 +11,8 @@ from txdbus import interface
 
 
 _dtd_decl = '''<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">'''
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">'''  # noqa:
+# Line length is acceptable here ^
 
 _intro = '''  <interface name="org.freedesktop.DBus.Introspectable">
     <method name="Introspect">
@@ -28,7 +29,8 @@ _intro = '''  <interface name="org.freedesktop.DBus.Introspectable">
     </method>
   </interface>'''
 
-def generateIntrospectionXML( objectPath, exportedObjects ):
+
+def generateIntrospectionXML(objectPath, exportedObjects):
     """
     Generates the introspection XML for an object path or partial object path
     that matches exported objects.
@@ -61,13 +63,15 @@ def generateIntrospectionXML( objectPath, exportedObjects ):
         return None
 
     for m in matches:
-        l.append('<node name="%s"/>' % m )
+        l.append('<node name="%s"/>' % m)
 
     l.append('</node>')
     return '\n'.join(l)
 
 # Returns a list of interfaces
-def getInterfacesFromXML( xmlStr, replaceKnownInterfaces = False ):
+
+
+def getInterfacesFromXML(xmlStr, replaceKnownInterfaces=False):
     """
     Parses the supplied Introspection XML string and returns a list of
     L{interface.DBusInerface} instances representing the XML interface
@@ -80,13 +84,13 @@ def getInterfacesFromXML( xmlStr, replaceKnownInterfaces = False ):
 
     @rtype: C{list} of L{interface.DBusInerface}
     """
-    handler = IntrospectionHandler( replaceKnownInterfaces )
+    handler = IntrospectionHandler(replaceKnownInterfaces)
 
     xmlStr = xmlStr.strip()
     if xmlStr.startswith('<!DOCTYPE'):
-        xmlStr = xmlStr[ xmlStr.find('>')+1 : ]
+        xmlStr = xmlStr[xmlStr.find('>') + 1:]
 
-    #xml.sax.parseString( xmlStr, handler )
+    # xml.sax.parseString( xmlStr, handler )
     p = xml.sax.make_parser()
     p.setFeature(xml.sax.handler.feature_validation, False)
     p.setFeature(xml.sax.handler.feature_external_ges, False)
@@ -96,24 +100,22 @@ def getInterfacesFromXML( xmlStr, replaceKnownInterfaces = False ):
     return handler.interfaces
 
 
-        
-class IntrospectionHandler( xml.sax.handler.ContentHandler ):
+class IntrospectionHandler(xml.sax.handler.ContentHandler):
     """
     XML Interface description handler
     """
 
-    def __init__(self, replaceKnownInterfaces = False):
+    def __init__(self, replaceKnownInterfaces=False):
         xml.sax.handler.ContentHandler.__init__(self)
 
         self.skipKnown = not replaceKnownInterfaces
-        
-        self.interfaces = list()
-        self.member     = None
-        self.isMethod  = None
-        self.iface      = None
-        self.skip       = False
 
-        
+        self.interfaces = list()
+        self.member = None
+        self.isMethod = None
+        self.iface = None
+        self.skip = False
+
     def startElement(self, name, attrs):
         if self.skip:
             return
@@ -121,78 +123,68 @@ class IntrospectionHandler( xml.sax.handler.ContentHandler ):
         if f:
             f(attrs)
 
-            
     def endElement(self, name):
         if self.skip and name != 'interface':
             return
-        
+
         f = getattr(self, 'end_' + name, None)
         if f:
             f()
 
-
     def start_node(self, attrs):
-        pass # ignore for now
+        pass  # ignore for now
 
-            
     def start_interface(self, attrs):
         iname = str(attrs['name'])
-        
+
         if iname in interface.DBusInterface.knownInterfaces and self.skipKnown:
             self.skip = True
-            self.interfaces.append( interface.DBusInterface.knownInterfaces[iname] )
+            self.interfaces.append(
+                interface.DBusInterface.knownInterfaces[iname]
+            )
         else:
-            self.iface = interface.DBusInterface( iname )
-            self.interfaces.append( self.iface )
+            self.iface = interface.DBusInterface(iname)
+            self.interfaces.append(self.iface)
 
-            
     def end_interface(self):
         self.skip = False
 
-        
     def start_method(self, attrs):
-        self.member       = interface.Method(str(attrs['name']))
+        self.member = interface.Method(str(attrs['name']))
         self.member.nargs = 0
-        self.member.nret  = 0
-        self.isMethod    = True
-
+        self.member.nret = 0
+        self.isMethod = True
 
     def end_method(self):
-        self.iface.addMethod( self.member )
+        self.iface.addMethod(self.member)
 
-        
     def start_signal(self, attrs):
-        self.member       = interface.Signal(str(attrs['name']))
+        self.member = interface.Signal(str(attrs['name']))
         self.member.nargs = 0
-        self.isMethod    = False
-        
+        self.isMethod = False
 
     def end_signal(self):
         self.iface.addSignal(self.member)
 
-        
     def start_property(self, attrs):
-        name      = str(attrs['name'])
-        sig       = str(attrs['type'])
-        rw        = str(attrs['access'])
-        readable  = rw.lower() in ('read', 'readwrite')
+        name = str(attrs['name'])
+        sig = str(attrs['type'])
+        rw = str(attrs['access'])
+        readable = rw.lower() in ('read', 'readwrite')
         writeable = rw.lower() in ('write', 'readwrite')
-        self.member   = interface.Property(name, sig, readable, writeable)
+        self.member = interface.Property(name, sig, readable, writeable)
         self.isMethod = False
 
-        
     def start_annotation(self, attrs):
         if attrs['name'] == 'org.freedesktop.DBus.Property.EmitsChangedSignal':
-            self.member.emits = str(attrs['value']) in ('true','invalidates')
+            self.member.emits = str(attrs['value']) in ('true', 'invalidates')
 
-            
     def end_property(self):
         self.iface.addProperty(self.member)
 
-        
     def start_arg(self, attrs):
         t = str(attrs['type'])
-        
+
         if self.isMethod:
 
             if attrs['direction'] == 'in':
@@ -201,7 +193,7 @@ class IntrospectionHandler( xml.sax.handler.ContentHandler ):
             else:
                 self.member.nret += 1
                 self.member.sigOut = self.member.sigOut + t
-                
+
         else:
             self.member.nargs += 1
             self.member.sig = self.member.sig + t

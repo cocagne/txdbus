@@ -2,20 +2,24 @@ from twisted.trial import unittest
 
 from txdbus import marshal, error
 
+
 class InterfaceNameValidationTester(unittest.TestCase):
 
     def t(self, s):
-        self.assertRaises(error.MarshallingError,
-                          marshal.validateInterfaceName,
-                          s)
+        self.assertRaises(
+            error.MarshallingError,
+            marshal.validateInterfaceName,
+            s,
+        )
+
     def test_1(self):
-        self.t( 'oops' )
+        self.t('oops')
 
     def test_2(self):
         self.t('foo..bar')
 
     def test_3(self):
-        self.t('.'.join([ 'a' + str(i) for i in range(0,200) ]))
+        self.t('.'.join(['a' + str(i) for i in range(0, 200)]))
 
     def test_4(self):
         self.t('.foo.bar')
@@ -33,9 +37,11 @@ class InterfaceNameValidationTester(unittest.TestCase):
 class ObjectNameValidationTester (InterfaceNameValidationTester):
 
     def t(self, s):
-        self.assertRaises(error.MarshallingError,
-                          marshal.validateObjectPath,
-                          s)
+        self.assertRaises(
+            error.MarshallingError,
+            marshal.validateObjectPath,
+            s,
+        )
 
     def test_1(self):
         self.t('foo')
@@ -53,29 +59,33 @@ class ObjectNameValidationTester (InterfaceNameValidationTester):
         self.assertEquals(marshal.validateObjectPath('/foo/bar'), None)
 
 
-
 class ErrorNameValidationTester (InterfaceNameValidationTester):
 
     def t(self, s):
-        self.assertRaises(error.MarshallingError,
-                          marshal.validateErrorName,
-                          s)
+        self.assertRaises(
+            error.MarshallingError,
+            marshal.validateErrorName,
+            s,
+        )
 
 
 class BusNameValidationTester(unittest.TestCase):
 
     def t(self, s):
-        self.assertRaises(error.MarshallingError,
-                          marshal.validateBusName,
-                          s)
+        self.assertRaises(
+            error.MarshallingError,
+            marshal.validateBusName,
+            s,
+        )
+
     def test_1(self):
-        self.t( 'oops' )
+        self.t('oops')
 
     def test_2(self):
         self.t('foo..bar')
 
     def test_3(self):
-        self.t('.'.join([ 'a' + str(i) for i in range(0,200) ]))
+        self.t('.'.join(['a' + str(i) for i in range(0, 200)]))
 
     def test_4(self):
         self.t('.foo.bar')
@@ -93,19 +103,20 @@ class BusNameValidationTester(unittest.TestCase):
 class MemberNameValidationTester(unittest.TestCase):
 
     def t(self, s):
-        self.assertRaises(error.MarshallingError,
-                          marshal.validateMemberName,
-                          s)
+        self.assertRaises(
+            error.MarshallingError,
+            marshal.validateMemberName,
+            s,
+        )
+
     def test_1(self):
-        self.t( '' )
+        self.t('')
 
     def test_2(self):
-        self.t('f'*256)
+        self.t('f' * 256)
 
     def test_3(self):
         self.t('1oops')
 
     def test_4(self):
         self.t('foo.bar')
-
-

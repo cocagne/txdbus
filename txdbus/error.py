@@ -3,6 +3,7 @@ DBus errors
 @author: Tom Cocagne
 """
 
+
 class DBusException (Exception):
     """
     Base class for all expected DBus exceptions
@@ -40,7 +41,7 @@ class IntrospectionFailed (DBusException):
 class RemoteError (DBusException):
     """
     Thrown in response to errors encountered during a remote
-    method invocation. 
+    method invocation.
 
     @ivar errName: DBus error name
     @type errName: C{string}
@@ -51,13 +52,16 @@ class RemoteError (DBusException):
         self.errName = errName
 
     def __str__(self):
-        return '%s: %s' % (self.errName, self.message) if self.message else self.errName
+        return '%s: %s' % (
+            self.errName, self.message
+        ) if self.message else self.errName
 
-        
+
 class FailedToAcquireName(DBusException):
     """
     Indicates a failed attempt to acquire a bus name
     """
+
     def __init__(self, new_name, returnCode):
         head = 'Failed to acquire bus name "%s": ' % (new_name,)
         if returnCode == 2:
@@ -68,6 +72,5 @@ class FailedToAcquireName(DBusException):
             tail = 'Unknown reason'
 
         DBusException.__init__(self, head + tail)
-        
+
         self.returnCode = returnCode
-        
