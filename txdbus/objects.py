@@ -46,7 +46,7 @@ class DBusProperty(object):
 
     def __get__(self, instance, owner):
         if not hasattr(instance, '_dbusProperties'):
-            instance._dbusProperties = dict()
+            instance._dbusProperties = {}
 
         if self.interface is None:
             # Force object to set it
@@ -60,7 +60,7 @@ class DBusProperty(object):
     def __set__(self, instance, value):
 
         if not hasattr(instance, '_dbusProperties'):
-            instance._dbusProperties = dict()
+            instance._dbusProperties = {}
 
         if self.iprop is None:
             # Force object to set it
@@ -123,7 +123,7 @@ class RemoteDBusObject (object):
                          L{twisted.internet.protocol.Protocol.connectionLost})
         """
         if self._disconnectCBs is None:
-            self._disconnectCBs = list()
+            self._disconnectCBs = []
         self._disconnectCBs.append(callback)
 
     def cancelNotifyOnDisconnect(self, callback):
@@ -344,8 +344,8 @@ class IDBusObject (Interface):
 class _IfaceCache(object):
     def __init__(self, interfaceName):
         self.name = interfaceName
-        self.methods = dict()
-        self.properties = dict()
+        self.methods = {}
+        self.properties = {}
 
 
 @implementer(IDBusObject)
@@ -398,7 +398,7 @@ class DBusObject (object):
 
             if cache is None:
 
-                cache = dict()
+                cache = {}
 
                 for name, obj in six.iteritems(base.__dict__):
                     self._cacheInterfaces(base, cache, name, obj)
@@ -570,7 +570,7 @@ class DBusObject (object):
         self._objectHandler.conn.sendMessage(msig)
 
     def getAllProperties(self, interfaceName):
-        r = dict()
+        r = {}
 
         def addp(p):
             if p.iprop.access != 'write':
@@ -643,7 +643,7 @@ class DBusObjectHandler (object):
         @param connection: The connection to manage objects for
         """
         self.conn = connection
-        self.exports = dict()  # map object paths => obj
+        self.exports = {}  # map object paths => obj
         self._weakProxies = weakref.WeakValueDictionary()
 
     def connectionLost(self, reason):
@@ -670,7 +670,7 @@ class DBusObjectHandler (object):
         self.exports[o.getObjectPath()] = o
         o.setObjectHandler(self)
 
-        i = dict()
+        i = {}
         for iface in o.getInterfaces():
             i[iface.name] = o.getAllProperties(iface.name)
 
@@ -710,13 +710,13 @@ class DBusObjectHandler (object):
         Returns a Python dictionary containing the reply content for
         org.freedesktop.DBus.ObjectManager.GetManagedObjects
         """
-        d = dict()
+        d = {}
 
         for p in sorted(self.exports.keys()):
             if not p.startswith(objectPath) or p == objectPath:
                 continue
             o = self.exports[p]
-            i = dict()
+            i = {}
             d[p] = i
             for iface in o.getInterfaces():
                 i[iface.name] = o.getAllProperties(iface.name)
@@ -937,7 +937,7 @@ class DBusObjectHandler (object):
 
         if interfaces is not None:
 
-            ifl = list()
+            ifl = []
 
             if not isinstance(interfaces, list):
                 interfaces = [interfaces]

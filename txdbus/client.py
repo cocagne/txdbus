@@ -61,11 +61,11 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
         has completed successfully.
         """
         self.router = router.MessageRouter()
-        self.match_rules = dict()
+        self.match_rules = {}
         self.objHandler = objects.DBusObjectHandler(self)
         # serial_number => (deferred, delayed_timeout_cb | None):
-        self._pendingCalls = dict()
-        self._dcCallbacks = list()
+        self._pendingCalls = {}
+        self._dcCallbacks = []
 
         d = self.callRemote(
             '/Hello',
@@ -109,7 +109,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             if timeout:
                 timeout.cancel()
             d.errback(reason)
-        self._pendingCalls = dict()
+        self._pendingCalls = {}
 
         self.objHandler.connectionLost(reason)
 
@@ -216,7 +216,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             the match rule
         """
 
-        l = list()
+        l = []
 
         def add(k, v):
             if v is not None:

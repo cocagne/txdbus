@@ -322,7 +322,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba._create_cookie(g(20.0))
         self.ba._create_cookie(g(21.2))
         c = self.ba._get_cookies()
-        self.assertEquals(set([b'3', b'4']), set(x[0] for x in c))
+        self.assertEquals({b'3', b'4'}, {x[0] for x in c})
 
     def test_del_cookie_with_remaining(self):
         self.ba._create_cookie()
@@ -331,7 +331,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba.cookieId = 2
         self.ba._delete_cookie()
         c = self.ba._get_cookies()
-        self.assertEquals(set([b'1', b'3']), set(x[0] for x in c))
+        self.assertEquals({b'1', b'3'}, {x[0] for x in c})
 
     def test_del_cookie_last(self):
         self.ba._create_cookie()

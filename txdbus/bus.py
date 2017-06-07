@@ -45,7 +45,7 @@ class BusProtocol (txdbus.protocol.BasicDBusProtocol):
     def connectionAuthenticated(self):
         self.username = self.guid
         self.uniqueName = None
-        self.busNames = dict()  # name => allow_replacement
+        self.busNames = {}  # name => allow_replacement
         self.bus = self.factory.bus
         self.matchRules = set()
         self.isConnected = True
@@ -163,8 +163,8 @@ class Bus (objects.DBusObject):
     def __init__(self):
         objects.DBusObject.__init__(self, '/org/freedesktop/DBus')
         self.uuid = binascii.hexlify(os.urandom(16))
-        self.clients = dict()  # maps unique_bus_id to client connection
-        self.busNames = dict()  # maps name to list of queued connections
+        self.clients = {}  # maps unique_bus_id to client connection
+        self.busNames = {}  # maps name to list of queued connections
         self.router = router.MessageRouter()
         self.next_id = 1
         self.obj_handler = objects.DBusObjectHandler(self)
@@ -467,10 +467,18 @@ class Bus (objects.DBusObject):
     def dbus_AddMatch(self, rule, dbusCaller=None):
         caller = self.clients[dbusCaller]
 
-        kwargs = dict(mtype=None, sender=None, interface=None,
-                      member=None, path=None, path_namespace=None,
-                      destination=None, args=None, arg_paths=None,
-                      arg0namespace=None)
+        kwargs = {
+            'mtype': None,
+            'sender': None,
+            'interface': None,
+            'member': None,
+            'path': None,
+            'path_namespace': None,
+            'destination': None,
+            'args': None,
+            'arg_paths': None,
+            'arg0namespace': None,
+        }
 
         for item in rule.split(','):
             k, v = item.split('=')
@@ -486,11 +494,11 @@ class Bus (objects.DBusObject):
             elif k.startswith('arg'):
                 if k.endswith('path'):
                     if kwargs['arg_paths'] is None:
-                        kwargs['arg_paths'] = list()
+                        kwargs['arg_paths'] = []
                     kwargs['arg_paths'].append((int(k[3:-4]), value))
                 else:
                     if kwargs['args'] is None:
-                        kwargs['args'] = list()
+                        kwargs['args'] = []
                     kwargs['args'].append((int(k[3:]), value))
 
         self.router.addMatch(caller.sendMessage, **kwargs)

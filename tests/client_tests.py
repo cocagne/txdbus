@@ -793,7 +793,7 @@ class SignalTester(ServerObjectTester):
         return d
 
     def test_signal_cancel(self):
-        counts = dict(signal_count=0)
+        counts = {'signal_count': 0}
 
         def on_signal(_):
             counts['signal_count'] += 1
@@ -928,7 +928,7 @@ class SignalTester(ServerObjectTester):
     def test_arg_rule_remove_match(self):
         dsig = defer.Deferred()
 
-        x = dict(rule_id=None)
+        x = {'rule_id': None}
 
         def on_signal(result):
             dsig.callback(result)
@@ -995,7 +995,7 @@ class ErrorTester(ServerObjectTester):
             raise ErrorTester.TestException('ExpectedError')
 
         def dbus_raisePython(self):
-            d = dict()
+            d = {}
             d['Uh oh!']
 
         def dbus_raiseInvalid(self):
@@ -1239,7 +1239,7 @@ class ComplexObjectTester(ServerObjectTester):
         return self.proxy_chain(got_object, got_reply)
 
     def test_dict_to_tuples(self):
-        d = dict(foo='bar', baz='quux', william='wallace')
+        d = {'foo': 'bar', 'baz': 'quux', 'william': 'wallace'}
 
         def got_object(ro):
             return ro.callRemote('testDictToTuples', d)
@@ -1253,7 +1253,7 @@ class ComplexObjectTester(ServerObjectTester):
         return self.proxy_chain(got_object, got_reply)
 
     def test_dict_to_tuples2(self):
-        d = dict(foo='bar', baz='quux', william='wallace')
+        d = {'foo': 'bar', 'baz': 'quux', 'william': 'wallace'}
 
         def got_object(ro):
             return ro.callRemote('testDictToTuples2', d)
@@ -1268,7 +1268,7 @@ class ComplexObjectTester(ServerObjectTester):
         return self.proxy_chain(got_object, got_reply)
 
     def test_dict_to_tuples3(self):
-        d = dict(foo='bar', baz='quux', william='wallace')
+        d = {'foo': 'bar', 'baz': 'quux', 'william': 'wallace'}
 
         def got_object(ro):
             return ro.callRemote('testDictToTuples3', d)
@@ -1284,7 +1284,7 @@ class ComplexObjectTester(ServerObjectTester):
         return self.proxy_chain(got_object, got_reply)
 
     def test_dict_to_tuples4(self):
-        d = dict(foo='bar', baz='quux', william='wallace')
+        d = {'foo': 'bar', 'baz': 'quux', 'william': 'wallace'}
 
         def got_object(ro):
             return ro.callRemote('testDictToTuples4', [d])
@@ -1379,7 +1379,7 @@ class ComplexObjectTester(ServerObjectTester):
         return d
 
     def test_connection_lost_callbacks(self):
-        x = dict(hit=False)
+        x = {'hit': False}
 
         def cb(conn, reason):
             x['hit'] = True
@@ -1393,7 +1393,7 @@ class ComplexObjectTester(ServerObjectTester):
         return d
 
     def test_connection_lost_callbacks_canceled(self):
-        x = dict(hit1=False, hit2=False)
+        x = {'hit1': False, 'hit2': False}
 
         def cb1(conn, reason):
             x['hit1'] = True
@@ -1413,7 +1413,7 @@ class ComplexObjectTester(ServerObjectTester):
         return d
 
     def test_connection_lost_with_pending_calls(self):
-        x = dict(hit=False)
+        x = {'hit': False}
 
         def cb(conn, reason):
             x['hit'] = True
@@ -1980,7 +1980,7 @@ class BusNameTest(SimpleObjectTester):
     def test_name_replacement(self):
         d = self.cli2()
 
-        flags = dict(sig=False)
+        flags = {'sig': False}
 
         def on_name_lost(sig):
             self.assertEquals(sig.body[0], 'org.test.foobar')
@@ -2020,7 +2020,7 @@ class BusNameTest(SimpleObjectTester):
     def test_queued_name_replacement(self):
         d = self.cli2()
 
-        flags = dict(sig=False)
+        flags = {'sig': False}
 
         def on_name_acq(sig):
             self.assertEquals(sig.body[0], 'org.test.foobar')
@@ -2077,7 +2077,7 @@ class BusNameTest(SimpleObjectTester):
     def test_queued_name_replacement_with_errback(self):
         d = self.cli2()
 
-        flags = dict(sig=False)
+        flags = {'sig': False}
 
         def on_name_acq(sig):
             self.assertEquals(sig.body[0], 'org.test.foobar')

@@ -60,10 +60,10 @@ def getDBusEndpoints(reactor, busAddress, client=True):
 
     # XXX Add documentation about extra key=value parameters in address string
     #    such as nonce-tcp vs tcp which use same endpoint class
-    epl = list()
+    epl = []
 
     for ep_addr in addrString.split(';'):
-        d = dict()
+        d = {}
         kind = None
         ep = None
 

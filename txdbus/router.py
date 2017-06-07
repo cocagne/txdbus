@@ -25,7 +25,7 @@ class Rule (object):
         self.callback = callback
         self.id = _id
         self.router = router
-        self.simple = list()
+        self.simple = []
 
     def add(self, key, value):
         # if key in ('mtype', 'sender', 'interface', 'member', 'path',
@@ -77,7 +77,7 @@ class MessageRouter (object):
 
     def __init__(self):
         self._id = 0
-        self._rules = dict()
+        self._rules = {}
 
     def addMatch(self, callback, mtype=None, sender=None, interface=None,
                  member=None, path=None, path_namespace=None, destination=None,

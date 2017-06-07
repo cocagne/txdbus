@@ -111,7 +111,7 @@ class IntrospectionHandler(xml.sax.handler.ContentHandler):
 
         self.skipKnown = not replaceKnownInterfaces
 
-        self.interfaces = list()
+        self.interfaces = []
         self.member = None
         self.isMethod = None
         self.iface = None

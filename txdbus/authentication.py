@@ -404,7 +404,7 @@ class BusCookieAuthenticator (object):
         return lockfd
 
     def _get_cookies(self, timefunc=time.time):
-        cookies = list()
+        cookies = []
         try:
             with open(self.cookie_file, 'rb') as f:
                 for line in f:
@@ -549,7 +549,7 @@ class BusAuthenticator (object):
     def __init__(self, server_guid):
         self.server_guid = server_guid
         self.authenticated = False
-        self.mechanisms = dict()
+        self.mechanisms = {}
         self.protocol = None
         self.guid = None
 

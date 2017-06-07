@@ -130,7 +130,7 @@ class DBusInterface (object):
     @ivar introspectionXml: XML string containing the interface definition
     """
 
-    knownInterfaces = dict()
+    knownInterfaces = {}
 
     def __init__(self, name, *args, **kwargs):
         """
@@ -141,9 +141,9 @@ class DBusInterface (object):
             interface definition from being cached for future use
         """
         self.name = name
-        self.methods = dict()
-        self.signals = dict()
-        self.properties = dict()
+        self.methods = {}
+        self.signals = {}
+        self.properties = {}
         self._xml = None
 
         for x in args:
@@ -209,7 +209,7 @@ class DBusInterface (object):
         #        @rtype: C{string}
         #        """
         if self._xml is None:
-            l = list()
+            l = []
             l.append('  <interface name="%s">' % (self.name,))
 
             k = sorted(six.iterkeys(self.methods))

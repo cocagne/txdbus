@@ -106,7 +106,7 @@ class DBusMessage (object):
         else:
             binBody = b''
 
-        self.headers = list()
+        self.headers = []
 
         for attr_name, code, is_required in _headerAttrs:
             hval = getattr(self, attr_name, None)

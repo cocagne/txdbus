@@ -326,7 +326,7 @@ def genpad(align):
     return lambda x: padding[x % align and (align - x % align) or 0]
 
 
-pad = dict()
+pad = {}
 
 for name, tcode, align in dbus_types:
     pad[tcode] = genpad(align)
@@ -508,7 +508,7 @@ def marshal_signature(ct, var, start_byte, lendian, oobFDs):
 #       2 - Padding to required alignment of contained data type
 #       3 - each array element
 def marshal_array(ct, var, start_byte, lendian, oobFDs):
-    chunks = list()
+    chunks = []
     data_len = 0
     tsig = ct[1:]   # strip of leading 'a'
     tcode = tsig[0]  # type of array element
@@ -649,7 +649,7 @@ def marshal(compoundSignature, variableList,
 
     @returns: (number_of_encoded_bytes, list_of_binary_strings)
     """
-    chunks = list()
+    chunks = []
     bstart = startByte
 
     if hasattr(variableList, 'dbusOrder'):
@@ -769,7 +769,7 @@ def unmarshal_signature(ct, data, offset, lendian, oobFDs):
 #       3 - each array element
 def unmarshal_array(ct, data, offset, lendian, oobFDs):
     start_offset = offset
-    values = list()
+    values = []
     data_len = struct.unpack_from(lendian and '<I' or '>I', data, offset)[0]
     tsig = ct[1:]  # strip of leading 'a'
     tcode = tsig[0]  # type of array element
@@ -793,7 +793,7 @@ def unmarshal_array(ct, data, offset, lendian, oobFDs):
         raise MarshallingError('Invalid array encoding')
 
     if tcode == '{':
-        d = dict()
+        d = {}
         for item in values:
             d[item[0]] = item[1]
         values = d
@@ -874,7 +874,7 @@ def unmarshal(compoundSignature, data, offset=0, lendian=True, oobFDs=None):
 
     @returns: (number_of_bytes_decoded, list_of_values)
     """
-    values = list()
+    values = []
     start_offset = offset
 
     for ct in genCompleteTypes(compoundSignature):
