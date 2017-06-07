@@ -34,9 +34,9 @@ class SigFromPyTests(unittest.TestCase):
     def test_bool(self):
         self.t(True,'b')
 
+    @unittest.skipIf(six.PY3, 'Python 3 uses unified integers: no long type.')
     def test_long(self):
-        if six.PY2:
-            self.t(long(1),'x')
+        self.t(long(1),'x')
 
     def test_float(self):
         self.t(1.0,'d')
