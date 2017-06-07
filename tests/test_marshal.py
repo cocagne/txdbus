@@ -1,5 +1,6 @@
 import unittest
 from struct import pack
+
 import six
 
 import txdbus.marshal as m

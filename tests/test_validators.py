@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 
-from txdbus import marshal, error
+from txdbus import error, marshal
 
 
 class InterfaceNameValidationTester(unittest.TestCase):

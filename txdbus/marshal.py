@@ -4,10 +4,11 @@ Provides data marshalling to and from the DBus wire format
 @author: Tom Cocagne
 """
 
-import struct
-import re
-import six
 import codecs
+import re
+import struct
+
+import six
 
 from txdbus.error import MarshallingError
 

@@ -14,11 +14,10 @@ import tempfile
 from unittest import SkipTest
 
 import twisted
-from twisted.internet import reactor, defer
+from twisted.internet import defer, reactor
 
-from txdbus import objects, endpoints, error, client, introspection
-from txdbus.interface import DBusInterface, Method, Signal, Property
-
+from txdbus import client, endpoints, error, introspection, objects
+from txdbus.interface import DBusInterface, Method, Property, Signal
 from txdbus.objects import dbusMethod, DBusProperty
 
 

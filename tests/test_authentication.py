@@ -1,19 +1,17 @@
+import binascii
+import getpass
 import os
 import os.path
-import binascii
-import tempfile
 import shutil
-import getpass
+import tempfile
 import time
 
+from twisted.internet import defer, interfaces, protocol, reactor
+from twisted.internet.protocol import Factory
+from twisted.trial import unittest
 from zope.interface import implementer
 
-from twisted.trial import unittest
-
-from twisted.internet.protocol import Factory
-from twisted.internet import reactor, defer, protocol, interfaces
-
-from txdbus import bus, endpoints, authentication
+from txdbus import authentication, bus, endpoints
 from txdbus.authentication import DBusAuthenticationFailed
 
 

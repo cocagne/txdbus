@@ -18,9 +18,9 @@ from __future__ import print_function
 import os
 
 import twisted
-from twisted.internet import reactor, defer
+from twisted.internet import defer, reactor
 
-from txdbus import client, objects, interface
+from txdbus import client, interface, objects
 
 
 def trace_method_call(method):

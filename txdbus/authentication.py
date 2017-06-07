@@ -4,22 +4,20 @@ This module implements DBus authentication mechanisms
 @author: Tom Cocagne
 """
 
+import binascii
+import getpass
+import hashlib
 import os
 import os.path
 import time
-import getpass
-import hashlib
-import binascii
 
 import six
-
-from zope.interface import Interface, implementer
-
-from txdbus.protocol import IDBusAuthenticator
-from txdbus.error import DBusAuthenticationFailed
-
-from twisted.python import log
 from twisted.internet import interfaces
+from twisted.python import log
+from zope.interface import implementer, Interface
+
+from txdbus.error import DBusAuthenticationFailed
+from txdbus.protocol import IDBusAuthenticator
 
 
 @implementer(IDBusAuthenticator)

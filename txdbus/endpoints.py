@@ -5,8 +5,12 @@ Endpoint creation from DBus address strings
 """
 import os
 
-from twisted.internet.endpoints import UNIXClientEndpoint, TCP4ClientEndpoint
-from twisted.internet.endpoints import UNIXServerEndpoint, TCP4ServerEndpoint
+from twisted.internet.endpoints import (
+    TCP4ClientEndpoint,
+    TCP4ServerEndpoint,
+    UNIXClientEndpoint,
+    UNIXServerEndpoint,
+)
 
 
 def getDBusEnvEndpoints(reactor, client=True):

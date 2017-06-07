@@ -1,8 +1,8 @@
 import os
-from twisted.trial import unittest
-from twisted.internet import reactor
 
+from twisted.internet import reactor
 from twisted.internet.endpoints import UNIXServerEndpoint
+from twisted.trial import unittest
 
 from txdbus import endpoints
 

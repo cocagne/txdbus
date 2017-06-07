@@ -3,9 +3,10 @@ Provides support for DBus introspection
 
 @author: Tom Cocagne
 """
-from six.moves import cStringIO
 import xml.sax
 import xml.sax.handler
+
+from six.moves import cStringIO
 
 from txdbus import interface
 

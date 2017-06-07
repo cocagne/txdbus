@@ -3,13 +3,12 @@ import sys
 from unittest import SkipTest
 
 import six
+from twisted.internet import defer, reactor
 from twisted.internet.protocol import Factory
-from twisted.internet import reactor, defer
-
-from txdbus import endpoints, bus
 from twisted.trial import unittest
 
 from tests import client_tests
+from txdbus import bus, endpoints
 
 # Force the objects test code to use the internal bus rather than the
 # session bus provided by the operating system.

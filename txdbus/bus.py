@@ -4,14 +4,14 @@ DBus Bus implementation
 @author: Tom Cocagne
 """
 
-import os
 import binascii
+import os
 
 from twisted.python import log
 
 import txdbus.protocol
 
-from txdbus import authentication, router, message, objects, client, error
+from txdbus import authentication, client, error, message, objects, router
 from txdbus import marshal
 from txdbus.interface import DBusInterface, Method, Signal
 

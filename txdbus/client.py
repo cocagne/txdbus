@@ -8,14 +8,20 @@ methods over the DBus bus.
 """
 
 import six
-from twisted.internet import reactor, defer
-from twisted.internet.protocol import Factory
+from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectError
+from twisted.internet.protocol import Factory
 
 import txdbus.protocol
 
-from txdbus import authentication, message, objects, introspection, router
-from txdbus import error
+from txdbus import (
+    authentication,
+    error,
+    introspection,
+    message,
+    objects,
+    router,
+)
 
 
 # Constant return values for requestBusName
