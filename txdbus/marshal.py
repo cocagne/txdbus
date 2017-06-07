@@ -316,7 +316,6 @@ def genCompleteTypes( compoundSig ):
       "i(i(ii))i" => [ 'i', '(i(ii))', 'i' ]
     """
     i     = 0
-    start = 0
     end   = len(compoundSig)
 
     def find_end( idx, b, e ):
@@ -345,7 +344,6 @@ def genCompleteTypes( compoundSig ):
             i = x
 
         elif c == 'a':
-            start = i
             g = genCompleteTypes( compoundSig[i+1:] )
             ct = six.next(g)
             i += len(ct)

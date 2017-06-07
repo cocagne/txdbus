@@ -2,10 +2,9 @@ import os
 from twisted.trial import unittest
 from twisted.internet import reactor
 
-from twisted.internet.endpoints import UNIXClientEndpoint, TCP4ClientEndpoint
-from twisted.internet.endpoints import UNIXServerEndpoint, TCP4ServerEndpoint
+from twisted.internet.endpoints import UNIXServerEndpoint
 
-from txdbus import error, endpoints
+from txdbus import endpoints
 
 class EndpointsTester(unittest.TestCase):
 

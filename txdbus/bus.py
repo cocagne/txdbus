@@ -7,7 +7,6 @@ DBus Bus implementation
 import os
 import binascii
 
-from twisted.internet.protocol import Factory
 from twisted.python import log
 
 import txdbus.protocol

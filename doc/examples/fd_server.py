@@ -16,7 +16,6 @@ requires the underlying transport to be a UNIX domain socket.
 from __future__ import print_function
 
 import os
-import sys
 
 import twisted
 from twisted.internet import reactor, defer
