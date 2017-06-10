@@ -2,10 +2,11 @@ import unittest
 
 from txdbus import error, message
 
+
 class MessageTester(unittest.TestCase):
     def test_too_long(self):
         class E(message.ErrorMessage):
-            _maxMsgLen         = 1
+            _maxMsgLen = 1
 
         def c():
             E('foo.bar', 5)
@@ -19,11 +20,9 @@ class MessageTester(unittest.TestCase):
 
     def test_invalid_message_type(self):
         class E(message.ErrorMessage):
-            _messageType=99
+            _messageType = 99
         try:
             message.parseMessage(E('foo.bar', 5).rawMessage, oobFDs=[])
             self.assertTrue(False)
         except Exception as e:
             self.assertEquals(str(e), 'Unknown Message Type: 99')
-        
-    
