@@ -28,9 +28,8 @@ class Rule (object):
         self.simple = []
 
     def add(self, key, value):
-        # if key in ('mtype', 'sender', 'interface', 'member', 'path',
-        # 'destination'):
-        if key in ('mtype', 'interface', 'member', 'path', 'destination'):
+        if key in ('mtype', 'sender', 'interface', 'member', 'path',
+                   'destination'):
             self.simple.append((key, value))
         else:
             setattr(self, key, value)

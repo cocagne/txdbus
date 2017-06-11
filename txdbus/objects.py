@@ -141,7 +141,8 @@ class RemoteDBusObject (object):
             for cb in self._disconnectCBs:
                 cb(self, reason)
 
-    def notifyOnSignal(self, signalName, callback, interface=None):
+    def notifyOnSignal(self, signalName, callback, interface=None, sender=None):
+
         """
         Informs the DBus daemon of the process's interest in the specified
         signal and registers the callback function to be called when the
@@ -195,6 +196,7 @@ class RemoteDBusObject (object):
             path=self.objectPath,
             member=signalName,
             interface=iface.name,
+            sender=sender
         )
 
         def on_ok(rule_id):
