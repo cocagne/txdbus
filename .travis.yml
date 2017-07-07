@@ -28,8 +28,8 @@ install:
   - pip install tox
 
 script:
-  - dbus-launch --version
-  - dbus-launch -- tox
+  - dbus-run-session --version
+  - dbus-run-session -- tox
 
 after_script:
   - pip install codecov
