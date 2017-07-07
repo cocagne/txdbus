@@ -27,6 +27,7 @@ install:
   - pip install tox
 
 script:
+  - dbus-launch --version
   - dbus-launch -- tox
 
 after_script:
