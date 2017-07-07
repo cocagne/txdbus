@@ -33,8 +33,10 @@ addons:
 install:
   - pip install tox
 
-script:
+before_script:
   - dbus-launch --version
+
+script:
   - dbus-launch -- tox
 
 after_script:
