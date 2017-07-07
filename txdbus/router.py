@@ -45,9 +45,6 @@ class Rule (object):
                     return
 
             if hasattr(self, 'path_namespace'):
-                # See https://github.com/cocagne/txdbus/issues/62
-                # FIXME: Skipping validation for this since we already have an
-                # open issue for it:
                 if (m.path is None or
                         not m.path.startswith(self.path_namespace)):
                     return
