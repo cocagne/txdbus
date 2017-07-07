@@ -28,13 +28,14 @@ addons:
   apt:
     packages:
     - dbus
+    - dbus-x11
 
 install:
   - pip install tox
 
 script:
-  - dbus-run-session --version
-  - dbus-run-session -- tox
+  - dbus-launch --version
+  - dbus-launch -- tox
 
 after_script:
   - pip install codecov
