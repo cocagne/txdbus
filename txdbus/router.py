@@ -45,8 +45,10 @@ class Rule (object):
                     return
 
             if hasattr(self, 'path_namespace'):
-                if (m.path is None or
-                        not m.path.startswith(self.path_namespace)):
+                if (
+                    m.path is None or
+                    not m.path.startswith(self.path_namespace)
+                ):
                     return
 
             if hasattr(self, 'args') and m.body is not None:
