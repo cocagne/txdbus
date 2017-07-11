@@ -1,4 +1,5 @@
 sudo: false
+dist: trusty
 language: python
 cache: pip
 
@@ -23,8 +24,17 @@ matrix:
     - python: 3.6
       env: TOXENV=flake8
 
+addons:
+  apt:
+    packages:
+    - dbus
+    - dbus-x11
+
 install:
   - pip install tox
+
+before_script:
+  - dbus-launch --version
 
 script:
   - dbus-launch -- tox

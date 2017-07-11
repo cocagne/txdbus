@@ -32,7 +32,7 @@ class TestException (Exception):
 
 
 class ServerObjectTester(object):
-    tst_path = '/TestObj'
+    tst_path = '/test/TestObj'
     tst_bus = 'org.txdbus.trial.bus%d' % os.getpid()
     TestClass = None
 
@@ -597,7 +597,7 @@ class IntrospectionTest(SimpleObjectTester):
 
     introspection_golden_xml = """<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
 "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-<node name="/TestObj">
+<node name="/test/TestObj">
   <interface name="org.txdbus.trial.Simple">
     <method name="testMethod">
       <arg direction="in" type="s"/>
@@ -963,6 +963,33 @@ class SignalTester(ServerObjectTester):
 
         return dsig
 
+    def test_path_namespace_rule_match(self):
+        dsig = defer.Deferred()
+
+        def on_signal(result):
+            dsig.callback(result)
+
+        d = self.client_conn.addMatch(
+            on_signal,
+            mtype='signal',
+            sender=self.tst_bus,
+            path_namespace='/test',
+        )
+
+        def on_proxy(ro):
+            return ro.callRemote('sendRaw', 'string payload')
+
+        d.addCallback(lambda _: self.get_proxy())
+
+        d.addCallback(on_proxy)
+
+        def check_result(result):
+            self.assertEquals(result.body[0], 'string payload')
+
+        dsig.addCallback(check_result)
+
+        return dsig
+
 
 class ErrorTester(ServerObjectTester):
     class TestException (Exception):
@@ -1019,8 +1046,9 @@ class ErrorTester(ServerObjectTester):
     def test_err_no_object(self):
         def on_err(e):
             self.assertEquals(
-                'org.freedesktop.DBus.Error.UnknownObject: /TestObjINVALID is '
-                'not an object provided by this process.',
+                'org.freedesktop.DBus.Error.UnknownObject: '
+                '/test/TestObjINVALID is not an object provided '
+                'by this process.',
                 str(e.value),
             )
 
