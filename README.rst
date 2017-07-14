@@ -18,7 +18,7 @@ TxDBus
   :alt: licence
 
 Tom Cocagne <tom.cocagne@gmail.com>
-v1.0, July 2012
+v1.1.0, July 2017
 
 Introduction
 ------------
