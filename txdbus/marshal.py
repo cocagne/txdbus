@@ -288,6 +288,8 @@ def sigFromPy(pobj):
     elif isinstance(pobj, dict):
         same = True
         vtype = None
+        if pobj == {}:
+            return 'a{sv}'
         for k, v in six.iteritems(pobj):
             if vtype is None:
                 vtype = type(v)
