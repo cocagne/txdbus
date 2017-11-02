@@ -71,9 +71,9 @@ class SigFromPyTests(unittest.TestCase):
         self.t({'foo': 1, 'bar': '2'}, 'a{sv}')
 
     def test_fail(self):
-        class I(object):
+        class SomeClass(object):
             pass
-        self.assertRaises(m.MarshallingError, m.sigFromPy, I())
+        self.assertRaises(m.MarshallingError, m.sigFromPy, SomeClass())
 
     def test_class(self):
         class V(object):
