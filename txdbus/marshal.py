@@ -272,6 +272,8 @@ def sigFromPy(pobj):
         return 'ay'
 
     elif isinstance(pobj, list):
+        if pobj == []:
+            return 'av'
         vtype = type(pobj[0])
         same = True
         for v in pobj[1:]:
@@ -286,10 +288,10 @@ def sigFromPy(pobj):
         return '(' + ''.join(sigFromPy(e) for e in pobj) + ')'
 
     elif isinstance(pobj, dict):
-        same = True
-        vtype = None
         if pobj == {}:
             return 'a{sv}'
+        same = True
+        vtype = None
         for k, v in six.iteritems(pobj):
             if vtype is None:
                 vtype = type(v)
