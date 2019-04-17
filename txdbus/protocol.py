@@ -250,7 +250,12 @@ class BasicDBusProtocol(protocol.Protocol):
         m = message.parseMessage(rawMsg, self._receivedFDs)
         mt = m._messageType
 
-        self._receivedFDs = []
+        # only clear self._receivedFDs when the signature contains a unix fd
+        # helps avoid a race condition where another message can be received
+        # after we receive the unix fd but before the associated unix fd
+        # message is received
+        if m.signature and 'h' in m.signature:
+            self._receivedFDs = []
 
         if mt == 1:
             self.methodCallReceived(m)
