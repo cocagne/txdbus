@@ -251,7 +251,12 @@ class BasicDBusProtocol(protocol.Protocol):
         m = message.parseMessage(rawMsg, self._receivedFDs)
         mt = m._messageType
 
-        self._receivedFDs = []
+        # only remove the number of unix fds used by a message. This helps
+        # avoid a race condition where another message can be received after
+        # we receive the unix fd but before the associated unix fd message
+        # is received
+        if hasattr(m, 'unix_fds'):
+            self._receivedFDs = self._receivedFDs[m.unix_fds:]
 
         if mt == 1:
             self.methodCallReceived(m)
