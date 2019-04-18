@@ -4,11 +4,13 @@ This module implements the wire-level DBus protocol.
 @author: Tom Cocagne
 """
 import os.path
+import socket
 import struct
 
 import six
 from twisted.internet import interfaces, protocol
 from twisted.python import log
+from twisted.python.sendmsg import SCM_RIGHTS, sendmsg
 from zope.interface import implementer, Interface
 
 from txdbus import error, message
@@ -150,7 +152,6 @@ class BasicDBusProtocol(protocol.Protocol):
                 data = data[1:]
 
                 if _is_linux:
-                    import socket
                     cd = self.transport.socket.getsockopt(
                         socket.SOL_SOCKET,
                         17,  # SO_PEERCRED
@@ -234,9 +235,17 @@ class BasicDBusProtocol(protocol.Protocol):
         """
         assert isinstance(msg, message.DBusMessage)
         if hasattr(msg, 'oobFDs') and msg.oobFDs:
-            for fd in msg.oobFDs:
-                self.transport.sendFileDescriptor(fd)
-        self.transport.write(msg.rawMessage)
+            sent = sendmsg(
+                self.transport.socket,
+                msg.rawMessage,
+                [(socket.SOL_SOCKET, SCM_RIGHTS, struct.pack(
+                    "i" * len(msg.oobFDs),
+                    *msg.oobFDs
+                ))]
+            )
+            assert sent == len(msg.rawMessage)
+        else:
+            self.transport.write(msg.rawMessage)
 
     def rawDBusMessageReceived(self, rawMsg):
         """
