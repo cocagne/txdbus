@@ -556,7 +556,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
                 body=body,
                 expectReply=expectReply,
                 autoStart=autoStart,
-                oobFDs=self._toBeSentFDs,
+                oobFDs=[],
             )
 
             d = self.callRemoteMessage(mcall, timeout)
