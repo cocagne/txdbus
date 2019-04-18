@@ -209,6 +209,7 @@ class MethodCallMessage (DBusMessage):
         self.body = body
         self.expectReply = expectReply
         self.autoStart = autoStart
+        self.oobFDs = oobFDs
 
         self._marshal(oobFDs=oobFDs)
 

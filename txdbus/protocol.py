@@ -69,7 +69,6 @@ class BasicDBusProtocol(protocol.Protocol):
     """
     _buffer = b''
     _receivedFDs = None
-    _toBeSentFDs = None
     _authenticated = False
     _nextMsgLen = 0
     _endian = '<'
@@ -88,7 +87,6 @@ class BasicDBusProtocol(protocol.Protocol):
     def connectionMade(self):
 
         self._receivedFDs = []
-        self._toBeSentFDs = []
         self.guid = None
 
         if self._client:
@@ -236,9 +234,9 @@ class BasicDBusProtocol(protocol.Protocol):
             connection
         """
         assert isinstance(msg, message.DBusMessage)
-        for fd in self._toBeSentFDs:
-            self.transport.sendFileDescriptor(fd)
-        self._toBeSentFDs = []
+        if hasattr(msg, 'oobFDs') and msg.oobFDs:
+            for fd in msg.oobFDs:
+                self.transport.sendFileDescriptor(fd)
         self.transport.write(msg.rawMessage)
 
     def rawDBusMessageReceived(self, rawMsg):
