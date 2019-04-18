@@ -59,7 +59,6 @@ class DBusMessage (object):
     sender = None
     destination = None
 
-
 #    def printSelf(self):
 #        mtype = { 1 : 'MethodCall',
 #                  2 : 'MethodReturn',
