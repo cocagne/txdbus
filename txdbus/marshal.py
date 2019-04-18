@@ -13,11 +13,11 @@ import six
 from txdbus.error import MarshallingError
 
 
-invalid_obj_path_re = re.compile('[^a-zA-Z0-9_/]')
-if_re = re.compile('[^A-Za-z0-9_.]')
-bus_re = re.compile('[^A-Za-z0-9_.\-:]')
-mbr_re = re.compile('[^A-Za-z0-9_]')
-dot_digit_re = re.compile('\.\d')
+invalid_obj_path_re = re.compile(r'[^a-zA-Z0-9_/]')
+if_re = re.compile(r'[^A-Za-z0-9_.]')
+bus_re = re.compile(r'[^A-Za-z0-9_.\-:]')
+mbr_re = re.compile(r'[^A-Za-z0-9_]')
+dot_digit_re = re.compile(r'\.\d')
 
 
 #                Name      Type code   Alignment
@@ -210,7 +210,7 @@ def validateBusName(n):
             raise Exception('Names may not begin with a digit')
         if bus_re.search(n):
             raise Exception(
-                'Names contains a character outside the set [A-Za-z0-9_.\-:]')
+                'Names contains a character outside the set [A-Za-z0-9_.\\-:]')
         if not n[0] == ':' and dot_digit_re.search(n):
             raise Exception(
                 'No coponents of an interface name may begin with a digit')
