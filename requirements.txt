@@ -1,2 +1,2 @@
+twisted>=10.1
 six
-Twisted==17.9.0
