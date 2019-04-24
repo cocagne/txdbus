@@ -2,7 +2,6 @@ import os
 import sys
 
 import six
-
 from twisted.trial import unittest
 
 from tests import client_tests
@@ -26,9 +25,9 @@ if 'DBUS_SESSION_BUS_ADDRESS' in os.environ:
 
     for k, v in six.iteritems(client_tests.__dict__):
         if (
-            isinstance(v, type) and
-            issubclass(v, client_tests.ServerObjectTester) and
-            v is not client_tests.ServerObjectTester
+            isinstance(v, type)
+            and issubclass(v, client_tests.ServerObjectTester)
+            and v is not client_tests.ServerObjectTester
         ):
             setattr(m, k, type(
                 k, (NativeBusMixin, v, unittest.TestCase), {}

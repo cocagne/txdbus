@@ -403,7 +403,7 @@ class DBusObject (object):
                 for name, obj in six.iteritems(base.__dict__):
                     self._cacheInterfaces(base, cache, name, obj)
 
-                setattr(base, '_dbusIfaceCache', cache)
+                base._dbusIfaceCache = cache
 
             yield cache
 
@@ -743,8 +743,8 @@ class DBusObjectHandler (object):
         dispatches them to the appropriate exported object
         """
         if (
-            msg.interface == 'org.freedesktop.DBus.Peer' and
-            msg.member == 'Ping'
+            msg.interface == 'org.freedesktop.DBus.Peer'
+            and msg.member == 'Ping'
         ):
             r = message.MethodReturnMessage(
                 msg.serial,
@@ -755,8 +755,8 @@ class DBusObjectHandler (object):
             return
 
         if (
-                msg.interface == 'org.freedesktop.DBus.Introspectable' and
-                msg.member == 'Introspect'
+                msg.interface == 'org.freedesktop.DBus.Introspectable'
+                and msg.member == 'Introspect'
         ):
             xml = introspection.generateIntrospectionXML(
                 msg.path,
@@ -786,8 +786,8 @@ class DBusObjectHandler (object):
             return
 
         if (
-                msg.interface == 'org.freedesktop.DBus.ObjectManager' and
-                msg.member == 'GetManagedObjects'
+                msg.interface == 'org.freedesktop.DBus.ObjectManager'
+                and msg.member == 'GetManagedObjects'
         ):
             i_and_p = self.getManagedObjects(o.getObjectPath())
 
@@ -882,7 +882,7 @@ class DBusObjectHandler (object):
 
                 try:
                     marshal.validateErrorName(name)
-                except error.MarshallingError as e:
+                except error.MarshallingError:
                     errMsg = ('!!(Invalid error name "%s")!! ' % name) + errMsg
                     name = 'org.txdbus.InvalidErrorName'
 
@@ -969,8 +969,8 @@ class DBusObjectHandler (object):
 
             if missing:
                 raise error.IntrospectionFailed(
-                    'Introspection failed to find interfaces: ' +
-                    ','.join(missing)
+                    'Introspection failed to find interfaces: '
+                    + ','.join(missing)
                 )
 
             prox = RemoteDBusObject(self, busName, objectPath, ifaces)
