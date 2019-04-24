@@ -47,8 +47,8 @@ class ClientAuthenticator (object):
     def _usesUnixSocketTransport(self, protocol):
 
         return (
-            getattr(protocol, 'transport', None) and
-            interfaces.IUNIXTransport.providedBy(protocol.transport)
+            getattr(protocol, 'transport', None)
+            and interfaces.IUNIXTransport.providedBy(protocol.transport)
         )
 
     def handleAuthMessage(self, line):
@@ -62,8 +62,8 @@ class ClientAuthenticator (object):
             m(args)
         else:
             raise DBusAuthenticationFailed(
-                'Invalid DBus authentication protocol message: ' +
-                line.decode("ascii", "replace")
+                'Invalid DBus authentication protocol message: '
+                + line.decode("ascii", "replace")
             )
 
     def authenticationSucceeded(self):
@@ -89,17 +89,17 @@ class ClientAuthenticator (object):
 
         if self.authMech == b'DBUS_COOKIE_SHA1':
             self.sendAuthMessage(
-                b'AUTH ' +
-                self.authMech +
-                b' ' +
-                binascii.hexlify(getpass.getuser().encode('ascii'))
+                b'AUTH '
+                + self.authMech
+                + b' '
+                + binascii.hexlify(getpass.getuser().encode('ascii'))
             )
         elif self.authMech == b'ANONYMOUS':
             self.sendAuthMessage(
-                b'AUTH ' +
-                self.authMech +
-                b' ' +
-                binascii.hexlify(b'txdbus')
+                b'AUTH '
+                + self.authMech
+                + b' '
+                + binascii.hexlify(b'txdbus')
             )
         else:
             self.sendAuthMessage(b'AUTH ' + self.authMech)
@@ -171,8 +171,8 @@ class ClientAuthenticator (object):
 
     def _auth_ERROR(self, line):
         log.msg(
-            'Authentication mechanism failed: ' +
-            line.decode("ascii", "replace")
+            'Authentication mechanism failed: '
+            + line.decode("ascii", "replace")
         )
         self.authTryNextMethod()
 
@@ -291,7 +291,7 @@ class BusCookieAuthenticator (object):
                 return self._step_two(arg)
             else:
                 raise Exception()
-        except Exception as e:
+        except Exception:
             return ('REJECTED', None)
 
     def _step_one(self, username, keyring_dir=None):
@@ -354,11 +354,11 @@ class BusCookieAuthenticator (object):
             client_challenge, hash_str = response.split()
 
             tohash = (
-                self.challenge_str +
-                b':' +
-                client_challenge +
-                b':' +
-                self.cookie
+                self.challenge_str
+                + b':'
+                + client_challenge
+                + b':'
+                + self.cookie
             )
 
             shash = binascii.hexlify(hashlib.sha1(tohash).digest())

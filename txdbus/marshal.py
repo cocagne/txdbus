@@ -15,9 +15,9 @@ from txdbus.error import MarshallingError
 
 invalid_obj_path_re = re.compile('[^a-zA-Z0-9_/]')
 if_re = re.compile('[^A-Za-z0-9_.]')
-bus_re = re.compile('[^A-Za-z0-9_.\-:]')
+bus_re = re.compile(r'[^A-Za-z0-9_.\-:]')
 mbr_re = re.compile('[^A-Za-z0-9_]')
-dot_digit_re = re.compile('\.\d')
+dot_digit_re = re.compile(r'\.\d')
 
 
 #                Name      Type code   Alignment
@@ -210,7 +210,7 @@ def validateBusName(n):
             raise Exception('Names may not begin with a digit')
         if bus_re.search(n):
             raise Exception(
-                'Names contains a character outside the set [A-Za-z0-9_.\-:]')
+                'Names contains a character outside the set [A-Za-z0-9_.\\-:]')
         if not n[0] == ':' and dot_digit_re.search(n):
             raise Exception(
                 'No coponents of an interface name may begin with a digit')
@@ -300,8 +300,9 @@ def sigFromPy(pobj):
 
     else:
         raise MarshallingError(
-            'Invalid Python type for variant: ' +
-            repr(pobj))
+            'Invalid Python type for variant: '
+            + repr(pobj)
+        )
 
 
 # ------------------------------------------------------------------------
@@ -328,7 +329,7 @@ def genpad(align):
 
 pad = {}
 
-for name, tcode, align in dbus_types:
+for _, tcode, align in dbus_types:
     pad[tcode] = genpad(align)
 
 pad['header'] = genpad(8)
@@ -653,7 +654,7 @@ def marshal(compoundSignature, variableList,
     bstart = startByte
 
     if hasattr(variableList, 'dbusOrder'):
-        order = getattr(variableList, 'dbusOrder')
+        order = variableList.dbusOrder
         variableList = [getattr(variableList, attr_name)
                         for attr_name in order]
 

@@ -281,8 +281,8 @@ class DBusCookieAuthenticationTester(unittest.TestCase):
             self.ca.authTryNextMethod()
         self.assertEquals(
             self.reply,
-            b'AUTH DBUS_COOKIE_SHA1 ' +
-            tohex(b'testuser'),
+            b'AUTH DBUS_COOKIE_SHA1 '
+            + tohex(b'testuser'),
         )
 
         t = tempfile.mkdtemp()
@@ -571,8 +571,8 @@ class AuthTestProtocol(protocol.Protocol):
 
         def recv1(msg):
             self.send(
-                b'AUTH DBUS_COOKIE_SHA1 ' +
-                binascii.hexlify(
+                b'AUTH DBUS_COOKIE_SHA1 '
+                + binascii.hexlify(
                     get_username()))
             self.assertTrue(msg.startswith(b'REJECTED'))
             self.gotMessage = recv2

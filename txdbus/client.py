@@ -13,7 +13,6 @@ from twisted.internet.error import ConnectError
 from twisted.internet.protocol import Factory
 
 import txdbus.protocol
-
 from txdbus import (
     authentication,
     error,
@@ -565,7 +564,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             d.addCallback(self._cbCvtReply, returnSignature)
 
             return d
-        except Exception as e:
+        except Exception:
             return defer.fail()
 
     def _onMethodTimeout(self, serial, d):
@@ -706,8 +705,8 @@ def connect(reactor, busAddress='session'):
             d.errback(
                 ConnectError(
                     string=(
-                        'Failed to connect to any bus address. Last error: ' +
-                        err.getErrorMessage()
+                        'Failed to connect to any bus address. Last error: '
+                        + err.getErrorMessage()
                     )
                 )
             )

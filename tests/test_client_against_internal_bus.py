@@ -56,7 +56,6 @@ m = sys.modules[__name__]
 
 for k, v in six.iteritems(client_tests.__dict__):
     if (
-        isinstance(v, type) and
-        issubclass(v, client_tests.ServerObjectTester)
+        isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester)
     ):
         setattr(m, k, type(k, (InternalBusMixin, v, unittest.TestCase), {}))

@@ -10,7 +10,6 @@ import os
 from twisted.python import log
 
 import txdbus.protocol
-
 from txdbus import authentication, client, error, message, objects, router
 from txdbus import marshal
 from txdbus.interface import DBusInterface, Method, Signal
@@ -188,7 +187,7 @@ class Bus (objects.DBusObject):
         for rule_id in proto.matchRules:
             self.router.delMatch(rule_id)
 
-        for busName in proto.busNames.iterkeys():
+        for busName in proto.busNames.keys():
             self.dbus_ReleaseName(busName, proto.uniqueName)
 
         if proto.uniqueName:
@@ -219,8 +218,8 @@ class Bus (objects.DBusObject):
                 p.sendMessage(msg)
             else:
                 log.msg(
-                    'Invalid bus name in msg.destination: ' +
-                    msg.destination
+                    'Invalid bus name in msg.destination: '
+                    + msg.destination
                 )
         else:
             self.router.routeMessage(msg)
@@ -241,8 +240,8 @@ class Bus (objects.DBusObject):
                 self.signalReceived(p, msg)
 
             if (
-                    msg.destination and
-                    not msg.destination == 'org.freedesktop.DBus'
+                    msg.destination
+                    and not msg.destination == 'org.freedesktop.DBus'
             ):
                 self.sendMessage(msg)
 

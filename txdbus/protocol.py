@@ -7,7 +7,6 @@ import os.path
 import struct
 
 import six
-
 from twisted.internet import interfaces, protocol
 from twisted.python import log
 from zope.interface import implementer, Interface
@@ -126,10 +125,10 @@ class BasicDBusProtocol(protocol.Protocol):
                 padlen = hlen % 8 and (8 - hlen % 8) or 0
 
                 self._nextMsgLen = (
-                    self.MSG_HDR_LEN +
-                    harr_len +
-                    padlen +
-                    body_len
+                    self.MSG_HDR_LEN
+                    + harr_len
+                    + padlen
+                    + body_len
                 )
 
             if self._nextMsgLen != 0 and buffer_len >= self._nextMsgLen:
