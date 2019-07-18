@@ -283,3 +283,78 @@ class ProtocolTester(unittest.TestCase):
         self.assertEqual(len(p.mrets), 0)
         self.assertEqual(len(p.merrs), 0)
         self.assertEqual(len(p.msigs), 0)
+
+    def test_dataReceived_method_call_with_unix_fd_race2(self):
+        p = TestProtocol()
+        p._authenticated = True
+
+        # message 1
+        path1 = '/test/path1'
+        member1 = 'testMethod1'
+        fd1 = 99
+        data1 = create_one_unix_fd_method(path1, member1, 0)
+
+        # message 2
+        path2 = '/test/path2'
+        member2 = 'testMethod2'
+        fd2 = 88
+        data2 = create_one_unix_fd_method(path2, member2, 0)
+
+        # possible race condition, file descriptor for message 1 is received
+        p.fileDescriptorReceived(fd1)
+        # then file descriptor for message 2 is received
+        p.fileDescriptorReceived(fd2)
+        # then message 1 is received
+        self.assertIsNone(p.dataReceived(data1))
+        # then message 2 is received
+        self.assertIsNone(p.dataReceived(data2))
+
+        self.assertEqual(len(p.mcalls), 2)
+        self.assertEqual(p.mcalls[0].path, path1)
+        self.assertEqual(p.mcalls[0].member, member1)
+        self.assertEqual(p.mcalls[0].body, [fd1])
+        self.assertEqual(p.mcalls[1].path, path2)
+        self.assertEqual(p.mcalls[1].member, member2)
+        self.assertEqual(p.mcalls[1].body, [fd2])
+        self.assertEqual(len(p.mrets), 0)
+        self.assertEqual(len(p.merrs), 0)
+        self.assertEqual(len(p.msigs), 0)
+
+    def test_dataReceived_method_call_with_unix_fd_race3(self):
+        raise unittest.SkipTest('It is not possible to fix this in txdbus - '
+                                'it must be fixed in twisted.')
+
+        p = TestProtocol()
+        p._authenticated = True
+
+        # message 1
+        path1 = '/test/path1'
+        member1 = 'testMethod1'
+        fd1 = 99
+        data1 = create_one_unix_fd_method(path1, member1, 0)
+
+        # message 2
+        path2 = '/test/path2'
+        member2 = 'testMethod2'
+        fd2 = 88
+        data2 = create_one_unix_fd_method(path2, member2, 0)
+
+        # possible race condition, file descriptor for message 1 is received
+        p.fileDescriptorReceived(fd1)
+        # then file descriptor for message 2 is received
+        p.fileDescriptorReceived(fd2)
+        # then message 2 is received
+        self.assertIsNone(p.dataReceived(data2))
+        # then message 1 is received
+        self.assertIsNone(p.dataReceived(data1))
+
+        self.assertEqual(len(p.mcalls), 2)
+        self.assertEqual(p.mcalls[0].path, path2)
+        self.assertEqual(p.mcalls[0].member, member2)
+        self.assertEqual(p.mcalls[0].body, [fd2])
+        self.assertEqual(p.mcalls[1].path, path1)
+        self.assertEqual(p.mcalls[1].member, member1)
+        self.assertEqual(p.mcalls[1].body, [fd1])
+        self.assertEqual(len(p.mrets), 0)
+        self.assertEqual(len(p.merrs), 0)
+        self.assertEqual(len(p.msigs), 0)
