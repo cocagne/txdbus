@@ -68,8 +68,8 @@ class BasicDBusProtocol(protocol.Protocol):
     @type authenticator: Class implementing L{IDBusAuthenticator}
     """
     _buffer = b''
-    _receivedFDs = []
-    _toBeSentFDs = []
+    _receivedFDs = None
+    _toBeSentFDs = None
     _authenticated = False
     _nextMsgLen = 0
     _endian = '<'
@@ -87,6 +87,8 @@ class BasicDBusProtocol(protocol.Protocol):
 
     def connectionMade(self):
 
+        self._receivedFDs = []
+        self._toBeSentFDs = []
         self.guid = None
 
         if self._client:
