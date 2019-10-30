@@ -68,8 +68,7 @@ class BasicDBusProtocol(protocol.Protocol):
     @type authenticator: Class implementing L{IDBusAuthenticator}
     """
     _buffer = b''
-    _receivedFDs = []
-    _toBeSentFDs = []
+    _receivedFDs = None
     _authenticated = False
     _nextMsgLen = 0
     _endian = '<'
@@ -87,6 +86,7 @@ class BasicDBusProtocol(protocol.Protocol):
 
     def connectionMade(self):
 
+        self._receivedFDs = []
         self.guid = None
 
         if self._client:
@@ -234,9 +234,9 @@ class BasicDBusProtocol(protocol.Protocol):
             connection
         """
         assert isinstance(msg, message.DBusMessage)
-        for fd in self._toBeSentFDs:
-            self.transport.sendFileDescriptor(fd)
-        self._toBeSentFDs = []
+        if hasattr(msg, 'oobFDs') and msg.oobFDs:
+            for fd in msg.oobFDs:
+                self.transport.sendFileDescriptor(fd)
         self.transport.write(msg.rawMessage)
 
     def rawDBusMessageReceived(self, rawMsg):
@@ -249,7 +249,12 @@ class BasicDBusProtocol(protocol.Protocol):
         m = message.parseMessage(rawMsg, self._receivedFDs)
         mt = m._messageType
 
-        self._receivedFDs = []
+        # only remove the number of unix fds used by a message. This helps
+        # avoid a race condition where another message can be received after
+        # we receive the unix fd but before the associated unix fd message
+        # is received
+        if hasattr(m, 'unix_fds'):
+            self._receivedFDs = self._receivedFDs[m.unix_fds:]
 
         if mt == 1:
             self.methodCallReceived(m)
