@@ -11,7 +11,6 @@ import os
 import os.path
 import time
 
-import six
 from twisted.internet import interfaces
 from twisted.python import log
 from zope.interface import implementer, Interface
@@ -557,7 +556,7 @@ class BusAuthenticator (object):
         self.state = None
         self.current_mech = None
 
-        for n, m in six.iteritems(self.authenticators):
+        for n, m in self.authenticators.items():
             self.mechanisms[n] = m
 
         mechNames = self.authenticators.keys()

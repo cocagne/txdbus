@@ -2,7 +2,6 @@ import os
 import sys
 from unittest import SkipTest
 
-import six
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import Factory
 from twisted.trial import unittest
@@ -54,7 +53,7 @@ class InternalBusMixin (object):
 # "Copy" the objects unit tests into this module
 m = sys.modules[__name__]
 
-for k, v in six.iteritems(client_tests.__dict__):
+for k, v in client_tests.__dict__.items():
     if (
         isinstance(v, type) and issubclass(v, client_tests.ServerObjectTester)
     ):

@@ -8,8 +8,6 @@ import codecs
 import re
 import struct
 
-import six
-
 from txdbus.error import MarshallingError
 
 
@@ -262,11 +260,11 @@ def sigFromPy(pobj):
         return 'b'
     elif isinstance(pobj, int):
         return 'i'
-    elif isinstance(pobj, six.integer_types):
+    elif isinstance(pobj, int):
         return 'x'
     elif isinstance(pobj, float):
         return 'd'
-    elif isinstance(pobj, six.string_types):
+    elif isinstance(pobj, str):
         return 's'
     elif isinstance(pobj, bytearray):
         return 'ay'
@@ -288,7 +286,7 @@ def sigFromPy(pobj):
     elif isinstance(pobj, dict):
         same = True
         vtype = None
-        for k, v in six.iteritems(pobj):
+        for k, v in pobj.items():
             if vtype is None:
                 vtype = type(v)
             elif not isinstance(v, vtype):
@@ -376,7 +374,7 @@ def genCompleteTypes(compoundSig):
 
         elif c == 'a':
             g = genCompleteTypes(compoundSig[i + 1:])
-            ct = six.next(g)
+            ct = next(g)
             i += len(ct)
             yield 'a' + ct
 
@@ -468,7 +466,7 @@ def marshal_unix_fd(ct, var, start_byte, lendian, oobFDs):
 #       3 - terminating nul byte
 #
 def marshal_string(ct, var, start_byte, lendian, oobFDs):
-    if not isinstance(var, six.string_types):
+    if not isinstance(var, str):
         raise MarshallingError('Required string. Received: ' + repr(var))
     if var.find('\0') != -1:
         raise MarshallingError(
@@ -525,7 +523,7 @@ def marshal_array(ct, var, start_byte, lendian, oobFDs):
     if isinstance(var, (list, tuple, bytearray)):
         arr_list = var
     elif isinstance(var, dict):
-        arr_list = [tpl for tpl in six.iteritems(var)]
+        arr_list = list(var.items())
     else:
         raise MarshallingError(
             'List, Tuple, Bytearray, or Dictionary required for DBus array. '

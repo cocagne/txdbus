@@ -1260,8 +1260,8 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testComplexArgs', 'foo', Foo())
 
         def got_reply(reply):
-            expected = repr(u'foo') + ' # ' + \
-                repr([1, 2, [u'substring', 10], 4])
+            expected = repr('foo') + ' # ' + \
+                repr([1, 2, ['substring', 10], 4])
             self.assertEquals(reply, expected)
 
         return self.proxy_chain(got_object, got_reply)

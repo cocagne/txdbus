@@ -7,7 +7,6 @@ methods over the DBus bus.
 @author: Tom Cocagne
 """
 
-import six
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectError
 from twisted.internet.protocol import Factory
@@ -630,7 +629,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             e.message = ''
             e.values = []
             if merr.body:
-                if isinstance(merr.body[0], six.string_types):
+                if isinstance(merr.body[0], str):
                     e.message = merr.body[0]
                 e.values = merr.body
             d.errback(e)

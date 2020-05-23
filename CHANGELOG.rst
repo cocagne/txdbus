@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 1.2.0
+-------------
+* Officially support Python 3.8.
+* Drop support for Python 2.
+* ``six`` is no longer required.
+
 Version 1.1.0
 -------------
 
@@ -12,4 +18,3 @@ Version 1.1.0
 * Added flake8 checks to automated tests.
 * Added automated code coverage tracking.
 * Created CHANGELOG.rst.
-

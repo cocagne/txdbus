@@ -1,8 +1,6 @@
 import unittest
 from struct import pack
 
-import six
-
 import txdbus.marshal as m
 
 # dbus_types = [ ('BYTE',        'y',     1),
@@ -36,10 +34,6 @@ class SigFromPyTests(unittest.TestCase):
     def test_bool(self):
         self.t(True, 'b')
 
-    @unittest.skipIf(six.PY3, 'Python 3 uses unified integers: no long type.')
-    def test_long(self):
-        self.t(long(1), 'x')  # noqa: This test is python2-only
-
     def test_float(self):
         self.t(1.0, 'd')
 
@@ -50,7 +44,7 @@ class SigFromPyTests(unittest.TestCase):
         self.t([1], 'ai')
 
     def test_bytearray(self):
-        self.t(bytearray(six.b('\xAA\xAA')), 'ay')
+        self.t(bytearray('\xAA\xAA'.encode("latin-1")), 'ay')
 
     def test_list_multiple_elements_same_type(self):
         self.t([1, 2], 'ai')
@@ -246,7 +240,7 @@ class TestArrayMarshal(TestMarshal):
     def test_byte_bytearray(self):
         self.check(
             'ay',
-            bytearray(six.b('\xaa\xaa')),
+            bytearray('\xaa\xaa'.encode("latin-1")),
             pack('iBB', 2, 170, 170),
         )
 
@@ -307,8 +301,8 @@ class TestVariantMarshal(TestMarshal):
     def test_bytearray(self):
         self.check(
             'v', bytearray(
-                six.b('\xAA\xAA')), pack(
-                'B2siBB', 2, six.b('ay'), 2, 170, 170))
+                '\xAA\xAA'.encode("latin-1")), pack(
+                'B2siBB', 2, 'ay'.encode("latin-1"), 2, 170, 170))
 
 
 # ------------------------------------------------------------------------
