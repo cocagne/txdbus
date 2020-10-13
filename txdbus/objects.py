@@ -485,7 +485,11 @@ class DBusObject (object):
         indicating whether or not they accept the \"dbusCaller\" keyword
         argument
         """
-        args = inspect.getargspec(method_obj)[0]
+        try:
+            args = inspect.getfullargspec(method_obj)[0]
+        except:
+            args = inspect.getargspec(method_obj)[0]
+
         needs_caller = False
 
         if len(args) >= 1 and args[-1] == 'dbusCaller':
