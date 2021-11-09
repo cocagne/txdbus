@@ -41,7 +41,7 @@ def generateIntrospectionXML(objectPath, exportedObjects):
     @rtype: C{string}
     """
     l = [_dtd_decl]
-    l.append('<node name="%s">' % (objectPath,))
+    l.append('<node name="{}">'.format(objectPath))
 
     obj = exportedObjects.get(objectPath, None)
     if obj is not None:

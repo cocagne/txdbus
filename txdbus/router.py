@@ -16,7 +16,7 @@ _mtypes = {'method_call': 1,
            'signal': 4}
 
 
-class Rule (object):
+class Rule :
     """
     Represents a single match rule
     """
@@ -69,7 +69,7 @@ class Rule (object):
             log.err()
 
 
-class MessageRouter (object):
+class MessageRouter :
     """
     Routes DBus messages to callback functions based on match rules as defined
     by the DBus specificiation
@@ -124,5 +124,5 @@ class MessageRouter (object):
 
     def routeMessage(self, m):
         # print 'ROUTING MSG', m.interface, m.member
-        for r in six.itervalues(self._rules):
+        for r in self._rules.values():
             r.match(m)

@@ -11,7 +11,7 @@ import twisted
 from txdbus import marshal
 
 
-class Method (object):
+class Method :
     """
     Represents a Method declaration in a DBus Interface.
 
@@ -46,7 +46,7 @@ class Method (object):
                 )
 
 
-class Signal (object):
+class Signal :
     """
     Represents a Signal declaration in a DBus Interface
 
@@ -66,7 +66,7 @@ class Signal (object):
         self.sig = arguments
 
 
-class Property (object):
+class Property :
     """
     Represents a Property declaration in a DBus Interface.
 
@@ -115,7 +115,7 @@ class Property (object):
             self.emits = emitsOnChange
 
 
-class DBusInterface (object):
+class DBusInterface :
     """
     Represents a DBus Interface Definition. The introspectionXml property
     contains the full XML introspection description of the interface defined by
@@ -154,7 +154,7 @@ class DBusInterface (object):
             elif isinstance(x, Property):
                 self.addProperty(x)
             else:
-                raise TypeError('Invalid interface argument: %s' % (repr(x),))
+                raise TypeError('Invalid interface argument: {}'.format(repr(x)))
 
         if 'noRegister' not in kwargs:
             self.knownInterfaces[name] = self
@@ -210,11 +210,11 @@ class DBusInterface (object):
         #        """
         if self._xml is None:
             l = []
-            l.append('  <interface name="%s">' % (self.name,))
+            l.append('  <interface name="{}">'.format(self.name))
 
-            k = sorted(six.iterkeys(self.methods))
+            k = sorted(self.methods.keys())
             for m in (self.methods[a] for a in k):
-                l.append('    <method name="%s">' % (m.name,))
+                l.append('    <method name="{}">'.format(m.name))
                 for arg_sig in marshal.genCompleteTypes(m.sigIn):
                     l.append(
                         '      <arg direction="in" type="%s"/>' %
@@ -225,14 +225,14 @@ class DBusInterface (object):
                         (arg_sig,))
                 l.append('    </method>')
 
-            k = sorted(six.iterkeys(self.signals))
+            k = sorted(self.signals.keys())
             for s in (self.signals[a] for a in k):
-                l.append('    <signal name="%s">' % (s.name,))
+                l.append('    <signal name="{}">'.format(s.name))
                 for arg_sig in marshal.genCompleteTypes(s.sig):
-                    l.append('      <arg type="%s"/>' % (arg_sig,))
+                    l.append('      <arg type="{}"/>'.format(arg_sig))
                 l.append('    </signal>')
 
-            k = list(six.iterkeys(self.properties))
+            k = list(self.properties.keys())
             k.sort()
             for p in (self.properties[a] for a in k):
                 l.append(

@@ -179,7 +179,7 @@ def validateInterfaceName(n):
             raise Exception(
                 'No components of an interface name may begin with a digit')
     except Exception as e:
-        raise MarshallingError('Invalid interface name "%s": %s' % (n, str(e)))
+        raise MarshallingError('Invalid interface name "{}": {}'.format(n, str(e)))
 
 
 def validateErrorName(n):
@@ -215,7 +215,7 @@ def validateBusName(n):
             raise Exception(
                 'No coponents of an interface name may begin with a digit')
     except Exception as e:
-        raise MarshallingError('Invalid bus name "%s": %s' % (n, str(e)))
+        raise MarshallingError('Invalid bus name "{}": {}'.format(n, str(e)))
 
 
 def validateMemberName(n):
@@ -237,7 +237,7 @@ def validateMemberName(n):
             raise Exception(
                 'Names contains a character outside the set [A-Za-z0-9_]')
     except Exception as e:
-        raise MarshallingError('Invalid member name "%s": %s' % (n, str(e)))
+        raise MarshallingError('Invalid member name "{}": {}'.format(n, str(e)))
 
 
 # XXX: This could be made *much* smarter (handle objects and recursive
@@ -262,11 +262,11 @@ def sigFromPy(pobj):
         return 'b'
     elif isinstance(pobj, int):
         return 'i'
-    elif isinstance(pobj, six.integer_types):
+    elif isinstance(pobj, int):
         return 'x'
     elif isinstance(pobj, float):
         return 'd'
-    elif isinstance(pobj, six.string_types):
+    elif isinstance(pobj, str):
         return 's'
     elif isinstance(pobj, bytearray):
         return 'ay'
@@ -288,7 +288,7 @@ def sigFromPy(pobj):
     elif isinstance(pobj, dict):
         same = True
         vtype = None
-        for k, v in six.iteritems(pobj):
+        for k, v in pobj.items():
             if vtype is None:
                 vtype = type(v)
             elif not isinstance(v, vtype):
@@ -376,7 +376,7 @@ def genCompleteTypes(compoundSig):
 
         elif c == 'a':
             g = genCompleteTypes(compoundSig[i + 1:])
-            ct = six.next(g)
+            ct = next(g)
             i += len(ct)
             yield 'a' + ct
 
@@ -468,7 +468,7 @@ def marshal_unix_fd(ct, var, start_byte, lendian, oobFDs):
 #       3 - terminating nul byte
 #
 def marshal_string(ct, var, start_byte, lendian, oobFDs):
-    if not isinstance(var, six.string_types):
+    if not isinstance(var, str):
         raise MarshallingError('Required string. Received: ' + repr(var))
     if var.find('\0') != -1:
         raise MarshallingError(
@@ -525,7 +525,7 @@ def marshal_array(ct, var, start_byte, lendian, oobFDs):
     if isinstance(var, (list, tuple, bytearray)):
         arr_list = var
     elif isinstance(var, dict):
-        arr_list = [tpl for tpl in six.iteritems(var)]
+        arr_list = [tpl for tpl in var.items()]
     else:
         raise MarshallingError(
             'List, Tuple, Bytearray, or Dictionary required for DBus array. '

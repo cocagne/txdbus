@@ -56,7 +56,7 @@ class ObjectNameValidationTester (InterfaceNameValidationTester):
         self.t('/foo~bar')
 
     def test_5(self):
-        self.assertEquals(marshal.validateObjectPath('/foo/bar'), None)
+        self.assertEqual(marshal.validateObjectPath('/foo/bar'), None)
 
 
 class ErrorNameValidationTester (InterfaceNameValidationTester):

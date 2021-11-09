@@ -1,4 +1,3 @@
-
 """
 Twisted DBus: Native Python DBus implementation for Twisted
 

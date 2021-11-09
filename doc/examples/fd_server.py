@@ -13,7 +13,6 @@ requires the underlying transport to be a UNIX domain socket.
 """
 
 
-from __future__ import print_function
 
 import os
 
@@ -26,7 +25,7 @@ from txdbus import client, interface, objects
 def trace_method_call(method):
 
     def wrapper(*args, **kwargs):
-        print('handling %s%r' % (method.__name__, args[1:]), end=' = ')
+        print('handling {}{!r}'.format(method.__name__, args[1:]), end=' = ')
         result = method(*args, **kwargs)
         print(repr(result))
         return result
@@ -83,7 +82,7 @@ class FDObject(objects.DBusObject):
             interface.Method('readBytesTwoFDs', arguments='hht', returns='ay')
         )
     else:
-        print('Twisted version < %s, not exposing %r' % (
+        print('Twisted version < {}, not exposing {!r}'.format(
             _minTxVersion.base(),
             'readBytesTwoFDs'
         ))
@@ -101,7 +100,7 @@ def main(reactor):
     try:
         bus = yield client.connect(reactor)
     except Exception as e:
-        print('failed connecting to dbus: %s' % (e,))
+        print('failed connecting to dbus: {}'.format(e))
         reactor.stop()
         defer.returnValue(None)
 
@@ -109,7 +108,7 @@ def main(reactor):
     object = FDObject(PATH)
     bus.exportObject(object)
     yield bus.requestBusName(BUSN)
-    print('exported %r on %r at %r' % (object.__class__.__name__, BUSN, PATH))
+    print('exported {!r} on {!r} at {!r}'.format(object.__class__.__name__, BUSN, PATH))
 
 
 if __name__ == '__main__':

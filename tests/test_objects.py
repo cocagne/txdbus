@@ -13,7 +13,7 @@ class ObjectsTester(unittest.TestCase):
         self.assertTrue(objects.isSignatureValid(None, None))
 
     def test_property_deletion(self):
-        class Foo(object):
+        class Foo:
             p = objects.DBusProperty('foo')
 
         def d():

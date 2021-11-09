@@ -12,7 +12,6 @@ Passing open UNIX filedescriptors accross RPC / ICP mechanisms such as dbus
 requires the underlying transport to be a UNIX domain socket.
 """
 
-from __future__ import print_function
 
 from twisted.internet import defer, task
 
@@ -22,7 +21,7 @@ from txdbus import client
 @defer.inlineCallbacks
 def call_remote_verbose(obj, method, *args, **kwargs):
 
-    print('calling %s%s' % (method, args), end=' = ')
+    print('calling {}{}'.format(method, args), end=' = ')
     result = yield obj.callRemote(method, *args, **kwargs)
     print(repr(result))
     defer.returnValue(result)
@@ -40,7 +39,7 @@ def main(reactor):
         object = yield bus.getRemoteObject(BUSN, PATH)
         print('obtained remote object')
     except Exception as e:
-        print('failed obtaining remote object: %s' % (e,))
+        print('failed obtaining remote object: {}'.format(e))
         defer.returnValue(None)
 
     # Open this source file. Ask remote to read it and return byte count.
@@ -59,7 +58,7 @@ def main(reactor):
         try:
             yield call_remote_verbose(object, 'readBytesTwoFDs', fd1, fd2, 5)
         except Exception as e:
-            print('remote call failed: %s' % (e,))
+            print('remote call failed: {}'.format(e))
 
     bus.disconnect()
     print('disconnected')

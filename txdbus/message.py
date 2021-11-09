@@ -9,7 +9,7 @@ from txdbus import error, marshal
 _headerFormat = 'yyyyuua(yv)'
 
 
-class DBusMessage (object):
+class DBusMessage :
     """
     Abstract base class for DBus messages
 

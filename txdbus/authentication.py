@@ -21,7 +21,7 @@ from txdbus.protocol import IDBusAuthenticator
 
 
 @implementer(IDBusAuthenticator)
-class ClientAuthenticator (object):
+class ClientAuthenticator :
     """
     Implements the client-side portion of the DBus authentication protocol.
 
@@ -251,7 +251,7 @@ class IBusAuthenticationMechanism (Interface):
 
 
 @implementer(IBusAuthenticationMechanism)
-class BusCookieAuthenticator (object):
+class BusCookieAuthenticator :
     """
     Implements the Bus-side portion of the DBUS_COOKIE_SHA1 authentication
     mechanism
@@ -474,7 +474,7 @@ class BusCookieAuthenticator (object):
 
 
 @implementer(IBusAuthenticationMechanism)
-class BusExternalAuthenticator (object):
+class BusExternalAuthenticator :
     """
     Implements the Bus-side portion of the EXTERNAL authentication
     mechanism
@@ -508,7 +508,7 @@ class BusExternalAuthenticator (object):
 
 
 @implementer(IBusAuthenticationMechanism)
-class BusAnonymousAuthenticator (object):
+class BusAnonymousAuthenticator :
     """
     Implements the Bus-side portion of the ANONYMOUS authentication
     mechanism
@@ -531,7 +531,7 @@ class BusAnonymousAuthenticator (object):
 
 
 @implementer(IDBusAuthenticator)
-class BusAuthenticator (object):
+class BusAuthenticator :
     """
     Implements the Bus-side portion of the DBus authentication protocol.
 
@@ -557,7 +557,7 @@ class BusAuthenticator (object):
         self.state = None
         self.current_mech = None
 
-        for n, m in six.iteritems(self.authenticators):
+        for n, m in self.authenticators.items():
             self.mechanisms[n] = m
 
         mechNames = self.authenticators.keys()

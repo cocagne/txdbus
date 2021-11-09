@@ -31,7 +31,7 @@ class EndpointsTester(unittest.TestCase):
             endpoints.getDBusEnvEndpoints(reactor)
             self.assertTrue(False)
         except Exception as e:
-            self.assertEquals(
+            self.assertEqual(
                 str(e),
                 'DBus Session environment variable not set',
             )
@@ -41,37 +41,37 @@ class EndpointsTester(unittest.TestCase):
 
     def test_unix_address(self):
         e = self.gde('unix:path=/var/run/dbus/system_bus_socket')[0]
-        self.assertEquals(e._path, '/var/run/dbus/system_bus_socket')
+        self.assertEqual(e._path, '/var/run/dbus/system_bus_socket')
         e = self.gde('unix:tmpdir=/tmp')[0]
         self.assertTrue(e._path.startswith('/tmp/dbus-'))
         e = self.gde(
             'unix:abstract=/tmp/dbus-jgAbdgyUH7,'
             'guid=6abbe624c672777bd87ab46e00027706'
         )[0]
-        self.assertEquals(e._path, '\0/tmp/dbus-jgAbdgyUH7')
+        self.assertEqual(e._path, '\0/tmp/dbus-jgAbdgyUH7')
         e = self.gde('unix:abstract=/tmp/dbus-jgAbdgyUH7', False)[0]
-        self.assertEquals(e._address, '\0/tmp/dbus-jgAbdgyUH7')
+        self.assertEqual(e._address, '\0/tmp/dbus-jgAbdgyUH7')
         self.assertTrue(isinstance(e, UNIXServerEndpoint))
 
     def test_tcp_address(self):
         e = self.gde('tcp:host=127.0.0.1,port=1234')[0]
-        self.assertEquals(e._host, '127.0.0.1')
-        self.assertEquals(e._port, 1234)
+        self.assertEqual(e._host, '127.0.0.1')
+        self.assertEqual(e._port, 1234)
 
         e = self.gde('tcp:host=127.0.0.1,port=1234', False)[0]
-        self.assertEquals(e._interface, '127.0.0.1')
-        self.assertEquals(e._port, 1234)
+        self.assertEqual(e._interface, '127.0.0.1')
+        self.assertEqual(e._port, 1234)
 
     def test_nonce_tcp_address(self):
         e = self.gde('nonce-tcp:host=127.0.0.1,port=1234,noncefile=/foo')[0]
-        self.assertEquals(e._host, '127.0.0.1')
-        self.assertEquals(e._port, 1234)
+        self.assertEqual(e._host, '127.0.0.1')
+        self.assertEqual(e._port, 1234)
         self.assertTrue('noncefile' in e.dbus_args)
-        self.assertEquals(e.dbus_args['noncefile'], '/foo')
+        self.assertEqual(e.dbus_args['noncefile'], '/foo')
 
     def test_launchd_address(self):
         l = self.gde('launchd:env=foo')
-        self.assertEquals(l, [])
+        self.assertEqual(l, [])
 
     def test_session(self):
         self.env(
@@ -79,14 +79,14 @@ class EndpointsTester(unittest.TestCase):
             'guid=6abbe624c672777bd87ab46e00027706'
         )
         e = self.gde('session')[0]
-        self.assertEquals(e._path, '\0/tmp/dbus-jgAbdgyUH7')
+        self.assertEqual(e._path, '\0/tmp/dbus-jgAbdgyUH7')
 
         self.env(None)
         self.assertRaises(Exception, self.gde, 'session')
 
     def test_system(self):
         e = self.gde('system')[0]
-        self.assertEquals(e._path, '/var/run/dbus/system_bus_socket')
+        self.assertEqual(e._path, '/var/run/dbus/system_bus_socket')
 
     def test_multiple_addresses(self):
         self.env(
@@ -97,7 +97,7 @@ class EndpointsTester(unittest.TestCase):
         l = self.gde('session')
         self.assertTrue(len(l) == 2)
         e = l[0]
-        self.assertEquals(e._path, '\0/tmp/dbus-jgAbdgyUH7')
+        self.assertEqual(e._path, '\0/tmp/dbus-jgAbdgyUH7')
         e = l[1]
-        self.assertEquals(e._host, '127.0.0.1')
-        self.assertEquals(e._port, 1234)
+        self.assertEqual(e._host, '127.0.0.1')
+        self.assertEqual(e._port, 1234)
