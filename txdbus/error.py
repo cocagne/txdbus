@@ -63,7 +63,7 @@ class FailedToAcquireName(DBusException):
     """
 
     def __init__(self, new_name, returnCode):
-        head = 'Failed to acquire bus name "{}": '.format(new_name)
+        head = f'Failed to acquire bus name "{new_name}": '
         if returnCode == 2:
             tail = 'Queued for name acquisition'
         elif returnCode == 3:

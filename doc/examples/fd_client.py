@@ -21,7 +21,7 @@ from txdbus import client
 @defer.inlineCallbacks
 def call_remote_verbose(obj, method, *args, **kwargs):
 
-    print('calling {}{}'.format(method, args), end=' = ')
+    print(f'calling {method}{args}', end=' = ')
     result = yield obj.callRemote(method, *args, **kwargs)
     print(repr(result))
     defer.returnValue(result)
@@ -39,7 +39,7 @@ def main(reactor):
         object = yield bus.getRemoteObject(BUSN, PATH)
         print('obtained remote object')
     except Exception as e:
-        print('failed obtaining remote object: {}'.format(e))
+        print(f'failed obtaining remote object: {e}')
         defer.returnValue(None)
 
     # Open this source file. Ask remote to read it and return byte count.
@@ -58,7 +58,7 @@ def main(reactor):
         try:
             yield call_remote_verbose(object, 'readBytesTwoFDs', fd1, fd2, 5)
         except Exception as e:
-            print('remote call failed: {}'.format(e))
+            print(f'remote call failed: {e}')
 
     bus.disconnect()
     print('disconnected')

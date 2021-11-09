@@ -25,7 +25,7 @@ from txdbus import client, interface, objects
 def trace_method_call(method):
 
     def wrapper(*args, **kwargs):
-        print('handling {}{!r}'.format(method.__name__, args[1:]), end=' = ')
+        print(f'handling {method.__name__}{args[1:]!r}', end=' = ')
         result = method(*args, **kwargs)
         print(repr(result))
         return result
@@ -100,7 +100,7 @@ def main(reactor):
     try:
         bus = yield client.connect(reactor)
     except Exception as e:
-        print('failed connecting to dbus: {}'.format(e))
+        print(f'failed connecting to dbus: {e}')
         reactor.stop()
         defer.returnValue(None)
 
@@ -108,7 +108,7 @@ def main(reactor):
     object = FDObject(PATH)
     bus.exportObject(object)
     yield bus.requestBusName(BUSN)
-    print('exported {!r} on {!r} at {!r}'.format(object.__class__.__name__, BUSN, PATH))
+    print(f'exported {object.__class__.__name__!r} on {BUSN!r} at {PATH!r}')
 
 
 if __name__ == '__main__':

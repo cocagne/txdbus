@@ -153,7 +153,7 @@ class DBusInterface :
             elif isinstance(x, Property):
                 self.addProperty(x)
             else:
-                raise TypeError('Invalid interface argument: {}'.format(repr(x)))
+                raise TypeError(f'Invalid interface argument: {repr(x)}')
 
         if 'noRegister' not in kwargs:
             self.knownInterfaces[name] = self
@@ -209,11 +209,11 @@ class DBusInterface :
         #        """
         if self._xml is None:
             l = []
-            l.append('  <interface name="{}">'.format(self.name))
+            l.append(f'  <interface name="{self.name}">')
 
             k = sorted(self.methods.keys())
             for m in (self.methods[a] for a in k):
-                l.append('    <method name="{}">'.format(m.name))
+                l.append(f'    <method name="{m.name}">')
                 for arg_sig in marshal.genCompleteTypes(m.sigIn):
                     l.append(
                         '      <arg direction="in" type="%s"/>' %
@@ -226,9 +226,9 @@ class DBusInterface :
 
             k = sorted(self.signals.keys())
             for s in (self.signals[a] for a in k):
-                l.append('    <signal name="{}">'.format(s.name))
+                l.append(f'    <signal name="{s.name}">')
                 for arg_sig in marshal.genCompleteTypes(s.sig):
-                    l.append('      <arg type="{}"/>'.format(arg_sig))
+                    l.append(f'      <arg type="{arg_sig}"/>')
                 l.append('    </signal>')
 
             k = list(self.properties.keys())

@@ -144,7 +144,7 @@ class ConnectionTest(SimpleObjectTester):
         bad2 = 'tcp:host=127.0.0.99,port=0,family="ipv4",guid=5'
         good = os.environ['DBUS_SESSION_BUS_ADDRESS']
 
-        d = client.connect(reactor, '{};{};{}'.format(bad1, bad2, good))
+        d = client.connect(reactor, f'{bad1};{bad2};{good}')
 
         def ok(conn):
             conn.disconnect()
@@ -158,7 +158,7 @@ class ConnectionTest(SimpleObjectTester):
         bad1 = 'unix:abstract=/tmp/FOOBARBAZBLICK,guid=5'
         bad2 = 'tcp:host=127.0.0.99,port=0,family="ipv4",guid=5'
 
-        d = client.connect(reactor, '{};{}'.format(bad1, bad2))
+        d = client.connect(reactor, f'{bad1};{bad2}')
 
         def ok(conn):
             conn.disconnect()

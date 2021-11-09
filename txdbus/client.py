@@ -217,7 +217,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
 
         def add(k, v):
             if v is not None:
-                l.append("{}='{}'".format(k, v))
+                l.append(f"{k}='{v}'")
 
         add('type', mtype)
         add('sender', sender)

@@ -177,7 +177,7 @@ def validateInterfaceName(n):
             raise Exception(
                 'No components of an interface name may begin with a digit')
     except Exception as e:
-        raise MarshallingError('Invalid interface name "{}": {}'.format(n, str(e)))
+        raise MarshallingError(f'Invalid interface name "{n}": {str(e)}')
 
 
 def validateErrorName(n):
@@ -213,7 +213,7 @@ def validateBusName(n):
             raise Exception(
                 'No coponents of an interface name may begin with a digit')
     except Exception as e:
-        raise MarshallingError('Invalid bus name "{}": {}'.format(n, str(e)))
+        raise MarshallingError(f'Invalid bus name "{n}": {str(e)}')
 
 
 def validateMemberName(n):
@@ -235,7 +235,7 @@ def validateMemberName(n):
             raise Exception(
                 'Names contains a character outside the set [A-Za-z0-9_]')
     except Exception as e:
-        raise MarshallingError('Invalid member name "{}": {}'.format(n, str(e)))
+        raise MarshallingError(f'Invalid member name "{n}": {str(e)}')
 
 
 # XXX: This could be made *much* smarter (handle objects and recursive
