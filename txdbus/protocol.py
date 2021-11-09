@@ -6,7 +6,6 @@ This module implements the wire-level DBus protocol.
 import os.path
 import struct
 
-import six
 from twisted.internet import interfaces, protocol
 from twisted.python import log
 from zope.interface import implementer, Interface

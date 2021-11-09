@@ -7,7 +7,6 @@ DBus objects
 import inspect
 import weakref
 
-import six
 from twisted.internet import defer
 from zope.interface import implementer, Interface
 

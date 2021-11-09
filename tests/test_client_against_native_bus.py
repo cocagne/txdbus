@@ -1,7 +1,6 @@
 import os
 import sys
 
-import six
 from twisted.trial import unittest
 
 from tests import client_tests

@@ -6,7 +6,6 @@ methods over the DBus bus.
 @author: Tom Cocagne
 """
 
-import six
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectError
 from twisted.internet.protocol import Factory

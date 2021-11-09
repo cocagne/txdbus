@@ -8,8 +8,6 @@ import codecs
 import re
 import struct
 
-import six
-
 from txdbus.error import MarshallingError
 
 

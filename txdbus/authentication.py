@@ -11,7 +11,6 @@ import os
 import os.path
 import time
 
-import six
 from twisted.internet import interfaces
 from twisted.python import log
 from zope.interface import implementer, Interface

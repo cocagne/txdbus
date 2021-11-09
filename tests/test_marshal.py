@@ -1,8 +1,6 @@
 import unittest
 from struct import pack
 
-import six
-
 import txdbus.marshal as m
 
 # dbus_types = [ ('BYTE',        'y',     1),
@@ -35,10 +33,6 @@ class SigFromPyTests(unittest.TestCase):
 
     def test_bool(self):
         self.t(True, 'b')
-
-    @unittest.skipIf(six.PY3, 'Python 3 uses unified integers: no long type.')
-    def test_long(self):
-        self.t(long(1), 'x')  # noqa: This test is python2-only
 
     def test_float(self):
         self.t(1.0, 'd')

@@ -5,7 +5,6 @@ model's definition of Interfaces.
 
 @author: Tom Cocagne
 """
-import six
 import twisted
 
 from txdbus import marshal

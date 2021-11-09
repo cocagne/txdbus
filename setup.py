@@ -21,7 +21,7 @@ setup(
     url='https://github.com/cocagne/txdbus',
     author='Tom Cocagne',
     author_email='tom.cocagne@gmail.com',
-    install_requires=['twisted>=10.1', 'six'],
+    install_requires=['twisted>=10.1'],
     provides=['txdbus'],
     packages=['txdbus'],
     keywords=['dbus', 'twisted'],

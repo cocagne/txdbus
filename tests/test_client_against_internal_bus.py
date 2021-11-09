@@ -2,7 +2,6 @@ import os
 import sys
 from unittest import SkipTest
 
-import six
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import Factory
 from twisted.trial import unittest
