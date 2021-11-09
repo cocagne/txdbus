@@ -20,7 +20,7 @@ from txdbus.protocol import IDBusAuthenticator
 
 
 @implementer(IDBusAuthenticator)
-class ClientAuthenticator :
+class ClientAuthenticator:
     """
     Implements the client-side portion of the DBus authentication protocol.
 

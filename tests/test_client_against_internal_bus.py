@@ -19,7 +19,7 @@ def delay(t):
     return d
 
 
-class InternalBusMixin :
+class InternalBusMixin:
 
     def _setup(self):
         raise SkipTest('Internal bus tests are currently broken.')

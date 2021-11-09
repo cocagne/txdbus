@@ -10,7 +10,7 @@ import twisted
 from txdbus import marshal
 
 
-class Method :
+class Method:
     """
     Represents a Method declaration in a DBus Interface.
 
