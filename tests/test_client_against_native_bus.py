@@ -1,7 +1,6 @@
 import os
 import sys
 
-import six
 from twisted.trial import unittest
 
 from tests import client_tests
@@ -12,7 +11,7 @@ from tests import client_tests
 if 'DBUS_SESSION_BUS_ADDRESS' in os.environ:
     orig_env = os.environ['DBUS_SESSION_BUS_ADDRESS']
 
-    class NativeBusMixin (object):
+    class NativeBusMixin :
 
         def _setup(self):
             os.environ['DBUS_SESSION_BUS_ADDRESS'] = orig_env
@@ -23,7 +22,7 @@ if 'DBUS_SESSION_BUS_ADDRESS' in os.environ:
     # "Copy" the objects unit tests into this module
     m = sys.modules[__name__]
 
-    for k, v in six.iteritems(client_tests.__dict__):
+    for k, v in client_tests.__dict__.items():
         if (
             isinstance(v, type)
             and issubclass(v, client_tests.ServerObjectTester)

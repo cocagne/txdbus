@@ -1,4 +1,3 @@
-
 """
 This is a DBus client connection implementation. It provides the ability to
 call methods on remote objects, receive signals, and export local objects and
@@ -7,7 +6,6 @@ methods over the DBus bus.
 @author: Tom Cocagne
 """
 
-import six
 from twisted.internet import defer, reactor
 from twisted.internet.error import ConnectError
 from twisted.internet.protocol import Factory
@@ -219,7 +217,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
 
         def add(k, v):
             if v is not None:
-                l.append("%s='%s'" % (k, v))
+                l.append(f"{k}='{v}'")
 
         add('type', mtype)
         add('sender', sender)
@@ -462,7 +460,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
                         'Unexpected return value signature')
             else:
                 if not msg.signature or msg.signature != returnSignature:
-                    msg = 'Expected "%s". Received "%s"' % (
+                    msg = 'Expected "{}". Received "{}"'.format(
                         str(returnSignature), str(msg.signature))
                     raise error.RemoteError(
                         'Unexpected return value signature: %s' %
@@ -630,7 +628,7 @@ class DBusClientConnection (txdbus.protocol.BasicDBusProtocol):
             e.message = ''
             e.values = []
             if merr.body:
-                if isinstance(merr.body[0], six.string_types):
+                if isinstance(merr.body[0], str):
                     e.message = merr.body[0]
                 e.values = merr.body
             d.errback(e)

@@ -15,7 +15,7 @@ from txdbus import authentication, bus, endpoints
 from txdbus.authentication import DBusAuthenticationFailed
 
 
-class GetPass(object):
+class GetPass:
     def getuser(self):
         return 'testuser'
 
@@ -43,10 +43,10 @@ class ClientAuthenticatorTester(unittest.TestCase):
         self.ca.handleAuthMessage(msg)
 
     def ae(self, x, y):
-        self.assertEquals(x, y)
+        self.assertEqual(x, y)
 
     def are(self, x):
-        self.assertEquals(self.reply, x)
+        self.assertEqual(self.reply, x)
 
     def test_bad_auth_message(self):
         self.assertRaises(DBusAuthenticationFailed, self.send, b'BAD_LINE')
@@ -90,7 +90,7 @@ class ClientAuthenticatorTester(unittest.TestCase):
     def test_unix_fd_agree(self):
 
         @implementer(interfaces.IUNIXTransport)
-        class FakeUNIXTransport(object):
+        class FakeUNIXTransport:
             def write(self, data):
                 pass
 
@@ -174,10 +174,10 @@ class BusCookieAuthenticatorTester(unittest.TestCase):
         self.ba = authentication.BusCookieAuthenticator()
 
     def ae(self, x, y):
-        self.assertEquals(x, y)
+        self.assertEqual(x, y)
 
     def ar(self, x):
-        self.assertEquals(x, ('REJECTED', None))
+        self.assertEqual(x, ('REJECTED', None))
 
     def s(self, x):
         return self.ba.step(x)
@@ -275,11 +275,11 @@ class DBusCookieAuthenticationTester(unittest.TestCase):
         self.ca.handleAuthMessage(msg)
 
     def test_dbus_cookie_authentication(self):
-        self.assertEquals(self.ba.getMechanismName(), 'DBUS_COOKIE_SHA1')
+        self.assertEqual(self.ba.getMechanismName(), 'DBUS_COOKIE_SHA1')
 
         while not self.ca.authMech == b'DBUS_COOKIE_SHA1':
             self.ca.authTryNextMethod()
-        self.assertEquals(
+        self.assertEqual(
             self.reply,
             b'AUTH DBUS_COOKIE_SHA1 '
             + tohex(b'testuser'),
@@ -290,10 +290,10 @@ class DBusCookieAuthenticationTester(unittest.TestCase):
         try:
             self.ca.cookie_dir = k
             s1 = self.ba._step_one('0', k)
-            self.assertEquals(s1[0], 'CONTINUE')
+            self.assertEqual(s1[0], 'CONTINUE')
             self.send(b'DATA ' + tohex(s1[1]))
             self.assertTrue(self.reply.startswith(b'DATA'))
-            self.assertEquals(
+            self.assertEqual(
                 self.ba._step_two(unhex(self.reply.split()[1])),
                 ('OK', None),
             )
@@ -322,7 +322,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba._create_cookie(g(20.0))
         self.ba._create_cookie(g(21.2))
         c = self.ba._get_cookies()
-        self.assertEquals({b'3', b'4'}, {x[0] for x in c})
+        self.assertEqual({b'3', b'4'}, {x[0] for x in c})
 
     def test_del_cookie_with_remaining(self):
         self.ba._create_cookie()
@@ -331,7 +331,7 @@ class DBusCookieCookieHandlingTester(unittest.TestCase):
         self.ba.cookieId = 2
         self.ba._delete_cookie()
         c = self.ba._get_cookies()
-        self.assertEquals({b'1', b'3'}, {x[0] for x in c})
+        self.assertEqual({b'1', b'3'}, {x[0] for x in c})
 
     def test_del_cookie_last(self):
         self.ba._create_cookie()
@@ -346,24 +346,24 @@ class ExternalAuthMechanismTester(unittest.TestCase):
     def test_external_auth_logic(self):
         bea = authentication.BusExternalAuthenticator()
 
-        self.assertEquals(bea.getMechanismName(), 'EXTERNAL')
+        self.assertEqual(bea.getMechanismName(), 'EXTERNAL')
 
-        class T(object):
+        class T:
             _unix_creds = None
 
         bea.init(T())
 
-        self.assertEquals(
+        self.assertEqual(
             bea.step(''),
             ('REJECT', 'Unix credentials not available'),
         )
 
         bea.creds = ('foo', 0)
 
-        self.assertEquals(bea.step(''), ('CONTINUE', ''))
-        self.assertEquals(bea.step(''), ('OK', None))
+        self.assertEqual(bea.step(''), ('CONTINUE', ''))
+        self.assertEqual(bea.step(''), ('OK', None))
 
-        self.assertEquals(bea.getUserName(), 'root')
+        self.assertEqual(bea.getUserName(), 'root')
 
         bea.cancel()
 
@@ -373,13 +373,13 @@ class AnonymousAuthMechanismTester(unittest.TestCase):
     def test_anonymous_auth_logic(self):
         baa = authentication.BusAnonymousAuthenticator()
 
-        self.assertEquals(baa.getMechanismName(), 'ANONYMOUS')
+        self.assertEqual(baa.getMechanismName(), 'ANONYMOUS')
 
         baa.init(None)
 
-        self.assertEquals(baa.step(''), ('OK', None))
+        self.assertEqual(baa.step(''), ('OK', None))
 
-        self.assertEquals(baa.getUserName(), 'anonymous')
+        self.assertEqual(baa.getUserName(), 'anonymous')
 
         baa.cancel()
 
@@ -499,7 +499,7 @@ class AuthTestProtocol(protocol.Protocol):
         self.send(b'FISHY')
 
         def recv(msg):
-            self.assertEquals(msg, b'ERROR "Unknown command"')
+            self.assertEqual(msg, b'ERROR "Unknown command"')
             d.callback(None)
         self.gotMessage = recv
         return d

@@ -7,7 +7,6 @@ DBus objects
 import inspect
 import weakref
 
-import six
 from twisted.internet import defer
 from zope.interface import implementer, Interface
 
@@ -35,7 +34,7 @@ def dbusMethod(interfaceName, methodName):
     return deco
 
 
-class DBusProperty(object):
+class DBusProperty:
 
     def __init__(self, dbusPropertyName, interface=None):
         self.pname = dbusPropertyName
@@ -83,7 +82,7 @@ class DBusProperty(object):
         raise AttributeError('DBus properties cannot be deleted')
 
 
-class RemoteDBusObject (object):
+class RemoteDBusObject :
     """
     Provides local representation of a remote DBus object.
     """
@@ -341,7 +340,7 @@ class IDBusObject (Interface):
         """
 
 
-class _IfaceCache(object):
+class _IfaceCache:
     def __init__(self, interfaceName):
         self.name = interfaceName
         self.methods = {}
@@ -349,7 +348,7 @@ class _IfaceCache(object):
 
 
 @implementer(IDBusObject)
-class DBusObject (object):
+class DBusObject :
     """
     Straight-forward L{IDBusObject} implementation. This
     implementation provides an API similar to that of
@@ -400,7 +399,7 @@ class DBusObject (object):
 
                 cache = {}
 
-                for name, obj in six.iteritems(base.__dict__):
+                for name, obj in base.__dict__.items():
                     self._cacheInterfaces(base, cache, name, obj)
 
                 base._dbusIfaceCache = cache
@@ -449,7 +448,7 @@ class DBusObject (object):
                     if key in d:
                         return d[key]
             else:
-                for ic in six.itervalues(cache):
+                for ic in cache.values():
                     d = getattr(ic, cacheAttr)
                     if key in d:
                         return d[key]
@@ -469,8 +468,7 @@ class DBusObject (object):
     def getInterfaces(self):
         for base in self.__class__.__mro__:
             if 'dbusInterfaces' in base.__dict__:
-                for iface in base.dbusInterfaces:
-                    yield iface
+                yield from base.dbusInterfaces
 
     def getObjectPath(self):
         return self._objectPath
@@ -588,14 +586,14 @@ class DBusObject (object):
                 ifc = cache.get(interfaceName, None)
 
                 if ifc:
-                    for p in six.itervalues(ifc.properties):
+                    for p in ifc.properties.values():
                         addp(p)
                     break
 
         else:
             for cache in self._iterIFaceCaches():
-                for ifc in six.itervalues(cache):
-                    for p in six.itervalues(ifc.properties):
+                for ifc in cache.values():
+                    for p in ifc.properties.values():
                         addp(p)
 
         return r
@@ -633,7 +631,7 @@ class DBusObject (object):
         return self.getAllProperties(interfaceName)
 
 
-class DBusObjectHandler (object):
+class DBusObjectHandler :
     """
     This class manages remote and local DBus objects associated with a DBus
     connection. Remote DBus objects are represented by instances of

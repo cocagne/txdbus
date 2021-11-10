@@ -5,8 +5,7 @@ Provides support for DBus introspection
 """
 import xml.sax
 import xml.sax.handler
-
-from six.moves import cStringIO
+from io import StringIO
 
 from txdbus import interface
 
@@ -41,7 +40,7 @@ def generateIntrospectionXML(objectPath, exportedObjects):
     @rtype: C{string}
     """
     l = [_dtd_decl]
-    l.append('<node name="%s">' % (objectPath,))
+    l.append(f'<node name="{objectPath}">')
 
     obj = exportedObjects.get(objectPath, None)
     if obj is not None:
@@ -96,7 +95,7 @@ def getInterfacesFromXML(xmlStr, replaceKnownInterfaces=False):
     p.setFeature(xml.sax.handler.feature_validation, False)
     p.setFeature(xml.sax.handler.feature_external_ges, False)
     p.setContentHandler(handler)
-    p.parse(cStringIO(xmlStr))
+    p.parse(StringIO(xmlStr))
 
     return handler.interfaces
 

@@ -52,7 +52,7 @@ class RemoteError (DBusException):
         self.errName = errName
 
     def __str__(self):
-        return '%s: %s' % (
+        return '{}: {}'.format(
             self.errName, self.message
         ) if self.message else self.errName
 
@@ -63,7 +63,7 @@ class FailedToAcquireName(DBusException):
     """
 
     def __init__(self, new_name, returnCode):
-        head = 'Failed to acquire bus name "%s": ' % (new_name,)
+        head = f'Failed to acquire bus name "{new_name}": '
         if returnCode == 2:
             tail = 'Queued for name acquisition'
         elif returnCode == 3:

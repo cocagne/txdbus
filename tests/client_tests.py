@@ -31,7 +31,7 @@ class TestException (Exception):
     dbusErrorName = 'org.txdbus.trial.TestException'
 
 
-class ServerObjectTester(object):
+class ServerObjectTester:
     tst_path = '/test/TestObj'
     tst_bus = 'org.txdbus.trial.bus%d' % os.getpid()
     TestClass = None
@@ -144,7 +144,7 @@ class ConnectionTest(SimpleObjectTester):
         bad2 = 'tcp:host=127.0.0.99,port=0,family="ipv4",guid=5'
         good = os.environ['DBUS_SESSION_BUS_ADDRESS']
 
-        d = client.connect(reactor, '%s;%s;%s' % (bad1, bad2, good))
+        d = client.connect(reactor, f'{bad1};{bad2};{good}')
 
         def ok(conn):
             conn.disconnect()
@@ -158,7 +158,7 @@ class ConnectionTest(SimpleObjectTester):
         bad1 = 'unix:abstract=/tmp/FOOBARBAZBLICK,guid=5'
         bad2 = 'tcp:host=127.0.0.99,port=0,family="ipv4",guid=5'
 
-        d = client.connect(reactor, '%s;%s' % (bad1, bad2))
+        d = client.connect(reactor, f'{bad1};{bad2}')
 
         def ok(conn):
             conn.disconnect()
@@ -206,7 +206,7 @@ class InheritiedInterfaceTest(SimpleObjectTester):
             return ro.callRemote('testMethodSub', 'foo')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobarSub')
+            self.assertEqual(reply, 'foobarSub')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -216,7 +216,7 @@ class InheritiedInterfaceTest(SimpleObjectTester):
             return ro.callRemote('testMethod', 'foo')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -266,7 +266,7 @@ class ObjectManagerTest(SimpleObjectTester):
             return ro.callRemote('GetManagedObjects')
 
         def got_reply(reply):
-            self.assertEquals(reply, {
+            self.assertEqual(reply, {
                 '/org/test/Foo/Bar': {
                     'org.freedesktop.DBus.Properties': {},
                     'org.txdbus.trial.Simple': {},
@@ -303,19 +303,19 @@ class ObjectManagerTest(SimpleObjectTester):
         f1 = yield ro1.callRemote('foo')
         f2 = yield ro2.callRemote('foo')
 
-        self.assertEquals(f1, 'foo')
-        self.assertEquals(f2, 'foo')
+        self.assertEqual(f1, 'foo')
+        self.assertEqual(f2, 'foo')
 
         self.server_conn.unexportObject('/org/test/Foo')
 
         f2 = yield ro2.callRemote('foo')
-        self.assertEquals(f2, 'foo')
+        self.assertEqual(f2, 'foo')
 
         try:
             f1 = yield ro1.callRemote('foo')
             self.fail('failed throw exception')
         except error.RemoteError as e:
-            self.assertEquals(
+            self.assertEqual(
                 e.message,
                 '/org/test/Foo is not an object provided by this process.')
         except Exception:
@@ -328,10 +328,10 @@ class ObjectManagerTest(SimpleObjectTester):
             dsig.callback(m)
 
         def check_results(m):
-            self.assertEquals(m.interface,
+            self.assertEqual(m.interface,
                               'org.freedesktop.DBus.ObjectManager')
-            self.assertEquals(m.member, 'InterfacesAdded')
-            self.assertEquals(m.body, [
+            self.assertEqual(m.member, 'InterfacesAdded')
+            self.assertEqual(m.body, [
                 '/org/test/Foo',
                 {
                     'org.txdbus.trial.SimpleSub': {'prop': 0},
@@ -369,10 +369,10 @@ class ObjectManagerTest(SimpleObjectTester):
             dsig.callback(m)
 
         def check_results(m):
-            self.assertEquals(m.interface,
+            self.assertEqual(m.interface,
                               'org.freedesktop.DBus.ObjectManager')
-            self.assertEquals(m.member, 'InterfacesRemoved')
-            self.assertEquals(m.body, [
+            self.assertEqual(m.member, 'InterfacesRemoved')
+            self.assertEqual(m.body, [
                 '/org/test/Foo', [
                     'org.txdbus.trial.SimpleSub',
                     'org.txdbus.trial.Simple',
@@ -425,7 +425,7 @@ class SimpleTest(SimpleObjectTester):
             return ro.callRemote('testMethod', 'foo')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -441,7 +441,7 @@ class SimpleTest(SimpleObjectTester):
         d = self.server_conn.getNameOwner(self.tst_bus)
 
         def got_reply(reply):
-            self.assertEquals(reply, self.server_conn.busName)
+            self.assertEqual(reply, self.server_conn.busName)
 
         d.addCallback(got_reply)
 
@@ -453,7 +453,7 @@ class SimpleTest(SimpleObjectTester):
             return ro.callRemote('testMethod', 'foo')
 
         def on_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         d = self.get_proxy(SimpleObjectTester.TestClass.tif)
         d.addCallback(on_proxy)
@@ -506,7 +506,7 @@ class SimpleTest(SimpleObjectTester):
             )
 
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.Failed: Already handled an Hello '
                 'message',
                 str(e.value),
@@ -667,7 +667,7 @@ class IntrospectionTest(SimpleObjectTester):
         def gotxml(xml):
             # with open('/tmp/tout', 'w') as f:
             #    f.write(xml)
-            self.assertEquals(self.introspection_golden_xml, xml)
+            self.assertEqual(self.introspection_golden_xml, xml)
 
         d.addCallback(cb)
         d.addCallback(gotxml)
@@ -750,7 +750,7 @@ class SignalTester(ServerObjectTester):
         d.addCallback(on_proxy)
 
         def check_result(result):
-            self.assertEquals(result, 'Signal arg: foo')
+            self.assertEqual(result, 'Signal arg: foo')
 
         dsig.addCallback(check_result)
 
@@ -848,7 +848,7 @@ class SignalTester(ServerObjectTester):
 
         def check_signals_sent(result):
             # both callRemotes successful and returning None
-            self.assertEquals(len(result), 2)
+            self.assertEqual(len(result), 2)
             for success, returnValue in result:
                 self.assertTrue(success)
                 self.assertIsNone(returnValue)
@@ -859,8 +859,8 @@ class SignalTester(ServerObjectTester):
 
         def check_signals_received(result):
             # d1 and d2 calledback with the correct signal data
-            self.assertEquals(result[0], (True, 'iface1'))
-            self.assertEquals(result[1], (True, 'iface2'))
+            self.assertEqual(result[0], (True, 'iface1'))
+            self.assertEqual(result[1], (True, 'iface2'))
             return result
 
         signalsReceived = defer.DeferredList([d1, d2])
@@ -892,7 +892,7 @@ class SignalTester(ServerObjectTester):
         d.addCallback(on_proxy)
 
         def check_result(result):
-            self.assertEquals(result.body[0], 'Signal arg: MATCH')
+            self.assertEqual(result.body[0], 'Signal arg: MATCH')
 
         dsig.addCallback(check_result)
 
@@ -919,7 +919,7 @@ class SignalTester(ServerObjectTester):
         d.addCallback(on_proxy)
 
         def check_result(result):
-            self.assertEquals(result.body[0], '/aa/bb/cc')
+            self.assertEqual(result.body[0], '/aa/bb/cc')
 
         dsig.addCallback(check_result)
 
@@ -952,7 +952,7 @@ class SignalTester(ServerObjectTester):
         d.addCallback(on_proxy)
 
         def check_result(result):
-            self.assertEquals(result.body[0], 'Signal arg: MATCH')
+            self.assertEqual(result.body[0], 'Signal arg: MATCH')
 
         dsig.addCallback(check_result)
 
@@ -984,7 +984,7 @@ class SignalTester(ServerObjectTester):
         d.addCallback(on_proxy)
 
         def check_result(result):
-            self.assertEquals(result.body[0], 'string payload')
+            self.assertEqual(result.body[0], 'string payload')
 
         dsig.addCallback(check_result)
 
@@ -1030,7 +1030,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_err_no_method(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.UnknownMethod: Method "FooBarBaz" '
                 'with signature "" on interface "(null)" doesn\'t exist',
                 str(e.value),
@@ -1045,7 +1045,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_err_no_object(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.UnknownObject: '
                 '/test/TestObjINVALID is not an object provided '
                 'by this process.',
@@ -1061,7 +1061,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_err_call_no_arguments(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 str(e.value),
                 'org.freedesktop.DBus.Error.InvalidArgs: Call to errCall has '
                 'wrong args (, expected s)',
@@ -1076,7 +1076,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_err_call_bad_arguments(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 str(e.value),
                 'org.freedesktop.DBus.Error.InvalidArgs: Call to errCall has '
                 'wrong args (i, expected s)',
@@ -1096,7 +1096,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_raise_expected(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 str(e.value),
                 'org.txdbus.trial.TestException: ExpectedError',
             )
@@ -1112,7 +1112,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_raise_python(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 str(e.value),
                 "org.txdbus.PythonException.KeyError: 'Uh oh!'",
             )
@@ -1127,7 +1127,7 @@ class ErrorTester(ServerObjectTester):
 
     def test_raise_invalid(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 str(e.value),
                 'org.txdbus.InvalidErrorName: !!(Invalid error name "oops")!! '
             )
@@ -1260,9 +1260,9 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testComplexArgs', 'foo', Foo())
 
         def got_reply(reply):
-            expected = repr(u'foo') + ' # ' + \
-                repr([1, 2, [u'substring', 10], 4])
-            self.assertEquals(reply, expected)
+            expected = repr('foo') + ' # ' + \
+                repr([1, 2, ['substring', 10], 4])
+            self.assertEqual(reply, expected)
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1273,7 +1273,7 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testDictToTuples', d)
 
         def got_reply(reply):
-            self.assertEquals(
+            self.assertEqual(
                 reply,
                 [['baz', 'quux'], ['foo', 'bar'], ['william', 'wallace']],
             )
@@ -1287,11 +1287,11 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testDictToTuples2', d)
 
         def got_reply(reply):
-            self.assertEquals(
+            self.assertEqual(
                 reply[0],
                 [['baz', 'quux'], ['foo', 'bar'], ['william', 'wallace']],
             )
-            self.assertEquals(reply[1], 6)
+            self.assertEqual(reply[1], 6)
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1302,12 +1302,12 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('testDictToTuples3', d)
 
         def got_reply(reply):
-            self.assertEquals(reply[0], 2)
-            self.assertEquals(
+            self.assertEqual(reply[0], 2)
+            self.assertEqual(
                 reply[1],
                 [['baz', 'quux'], ['foo', 'bar'], ['william', 'wallace']],
             )
-            self.assertEquals(reply[2], 6)
+            self.assertEqual(reply[2], 6)
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1319,12 +1319,12 @@ class ComplexObjectTester(ServerObjectTester):
 
         def got_reply(reply_obj):
             reply = reply_obj[0]
-            self.assertEquals(reply[0], 2)
-            self.assertEquals(
+            self.assertEqual(reply[0], 2)
+            self.assertEqual(
                 reply[1],
                 [['baz', 'quux'], ['foo', 'bar'], ['william', 'wallace']],
             )
-            self.assertEquals(reply[2], 6)
+            self.assertEqual(reply[2], 6)
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1395,7 +1395,7 @@ class ComplexObjectTester(ServerObjectTester):
             return ro.callRemote('notImplemented')
 
         def on_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.NotImplementedError',
             )
@@ -1581,7 +1581,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('renamedMethod')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'sneaky')
+            self.assertEqual(reply, 'sneaky')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1597,7 +1597,7 @@ class InterfaceTester(ServerObjectTester):
             return ro2.callRemote('baz')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'iface1')
+            self.assertEqual(reply, 'iface1')
 
         return self.proxy_chain(got_object, got_object2, got_reply)
 
@@ -1610,7 +1610,7 @@ class InterfaceTester(ServerObjectTester):
             )
 
         def on_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'Introspection failed to find interfaces: org.txdbus.'
                 'INVALID_INTERFACE',
@@ -1633,7 +1633,7 @@ class InterfaceTester(ServerObjectTester):
             )
 
         def on_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.NotImplementedError',
             )
@@ -1649,7 +1649,7 @@ class InterfaceTester(ServerObjectTester):
                 self.t.emitSignal('InvalidSignalName')
                 self.assertTrue(False, 'Should have raised an exception')
             except AttributeError as e:
-                self.assertEquals(
+                self.assertEqual(
                     str(e),
                     'Signal "InvalidSignalName" not found in any supported '
                     'interface.',
@@ -1662,7 +1662,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('baz')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'iface1')
+            self.assertEqual(reply, 'iface1')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1671,7 +1671,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('baz', interface='org.txdbus.trial.IFace2')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'iface2')
+            self.assertEqual(reply, 'iface2')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1716,7 +1716,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('testMethod', 'foo')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1726,7 +1726,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('blah')
 
         def got_reply(reply):
-            self.assertEquals(reply, ['foo', 'bar'])
+            self.assertEqual(reply, ['foo', 'bar'])
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1736,7 +1736,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', 'org.txdbus.trial.IFace2', 'prop1')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1746,7 +1746,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', 'org.txdbus.trial.IFace1', 'common')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'common1')
+            self.assertEqual(reply, 'common1')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1756,7 +1756,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', 'org.txdbus.trial.IFace2', 'common')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'common2')
+            self.assertEqual(reply, 'common2')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1766,7 +1766,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', '', 'prop1')
 
         def got_reply(reply):
-            self.assertEquals(reply, 'foobar')
+            self.assertEqual(reply, 'foobar')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1776,7 +1776,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', '', 'prop2')
 
         def got_reply(reply):
-            self.assertEquals(reply, 5)
+            self.assertEqual(reply, 5)
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1786,7 +1786,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', '', 'INVALID_PROPERTY')
 
         def got_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.Exception: Invalid Property')
 
@@ -1801,7 +1801,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Set', '', 'INVALID_PROPERTY', 'Whoopsie')
 
         def got_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.Exception: Invalid Property')
 
@@ -1816,7 +1816,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Set', '', 'prop1', 'Whoopsie')
 
         def got_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.Exception: Property is not '
                 'Writeable',
@@ -1833,7 +1833,7 @@ class InterfaceTester(ServerObjectTester):
             return ro.callRemote('Get', '', 'wronly')
 
         def got_err(err):
-            self.assertEquals(
+            self.assertEqual(
                 err.getErrorMessage(),
                 'org.txdbus.PythonException.Exception: Property is not '
                 'readable',
@@ -1847,11 +1847,11 @@ class InterfaceTester(ServerObjectTester):
     def test_set_string_property(self):
 
         def got_object(ro):
-            self.assertEquals(self.t.propw, 'orig')
+            self.assertEqual(self.t.propw, 'orig')
             return ro.callRemote('Set', '', 'pwrite', 'changed')
 
         def got_reply(reply):
-            self.assertEquals(self.t.propw, 'changed')
+            self.assertEqual(self.t.propw, 'changed')
 
         return self.proxy_chain(got_object, got_reply)
 
@@ -1869,7 +1869,7 @@ class InterfaceTester(ServerObjectTester):
 
             # The remaining properties have no possible ambiguity.
             del reply['common']
-            self.assertEquals(reply, {
+            self.assertEqual(reply, {
                 'prop1': 'foobar',
                 'prop2': 5,
                 'prop_if1': 'pif1',
@@ -1887,9 +1887,9 @@ class InterfaceTester(ServerObjectTester):
         def check_results(arg):
             interface_name, changed, invalidated = arg
 
-            self.assertEquals(interface_name, 'org.txdbus.trial.IFace2')
-            self.assertEquals(changed, {'pwrite': 'should emit'})
-            self.assertEquals(invalidated, [])
+            self.assertEqual(interface_name, 'org.txdbus.trial.IFace2')
+            self.assertEqual(changed, {'pwrite': 'should emit'})
+            self.assertEqual(invalidated, [])
 
         def on_proxy(ro):
             dnot = ro.notifyOnSignal('PropertiesChanged', on_signal)
@@ -1933,14 +1933,14 @@ class BusNameTest(SimpleObjectTester):
         d = self.client_conn.requestBusName('org.test.foobar')
 
         def cb(i):
-            self.assertEquals(i, client.NAME_ACQUIRED)
+            self.assertEqual(i, client.NAME_ACQUIRED)
 
         d.addCallback(cb)
         return d
 
     def test_bad_bus_name(self):
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.InvalidArgs: Cannot acquire a '
                 'service starting with \':\' such as ":1.234"',
                 str(e.value)
@@ -1956,7 +1956,7 @@ class BusNameTest(SimpleObjectTester):
         d = self.client_conn.requestBusName('org.test.foobar')
 
         def cb(i):
-            self.assertEquals(i, client.NAME_ALREADY_OWNER)
+            self.assertEqual(i, client.NAME_ALREADY_OWNER)
 
         d.addCallback(
             lambda _: self.client_conn.requestBusName('org.test.foobar'))
@@ -1989,7 +1989,7 @@ class BusNameTest(SimpleObjectTester):
             lambda _: self.client_conn2.requestBusName('org.test.foobar'))
 
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'Failed to acquire bus name "org.test.foobar": Name in use',
                 str(e.value),
             )
@@ -2011,7 +2011,7 @@ class BusNameTest(SimpleObjectTester):
         flags = {'sig': False}
 
         def on_name_lost(sig):
-            self.assertEquals(sig.body[0], 'org.test.foobar')
+            self.assertEqual(sig.body[0], 'org.test.foobar')
             flags['sig'] = True
 
         d.addCallback(
@@ -2033,7 +2033,7 @@ class BusNameTest(SimpleObjectTester):
 
         def cb(i):
             self.assertTrue(flags['sig'])
-            self.assertEquals(i, client.NAME_ACQUIRED)
+            self.assertEqual(i, client.NAME_ACQUIRED)
 
         d.addCallback(cb)
 
@@ -2051,7 +2051,7 @@ class BusNameTest(SimpleObjectTester):
         flags = {'sig': False}
 
         def on_name_acq(sig):
-            self.assertEquals(sig.body[0], 'org.test.foobar')
+            self.assertEqual(sig.body[0], 'org.test.foobar')
             flags['sig'] = True
 
         d.addCallback(
@@ -2071,7 +2071,7 @@ class BusNameTest(SimpleObjectTester):
             errbackUnlessAcquired=False,
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             client.NAME_IN_QUEUE,
             'Queue error'
@@ -2081,7 +2081,7 @@ class BusNameTest(SimpleObjectTester):
             'org.test.foobar'
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             client.NAME_RELEASED,
             'Failed to release name',
@@ -2108,7 +2108,7 @@ class BusNameTest(SimpleObjectTester):
         flags = {'sig': False}
 
         def on_name_acq(sig):
-            self.assertEquals(sig.body[0], 'org.test.foobar')
+            self.assertEqual(sig.body[0], 'org.test.foobar')
             flags['sig'] = True
 
         d.addCallback(lambda _: self.client_conn2.addMatch(
@@ -2127,7 +2127,7 @@ class BusNameTest(SimpleObjectTester):
             doNotQueue=False,
         ))
 
-        d.addErrback(lambda e: self.assertEquals(
+        d.addErrback(lambda e: self.assertEqual(
             e.getErrorMessage(),
             'Failed to acquire bus name "org.test.foobar": Queued for name '
             'acquisition'
@@ -2137,7 +2137,7 @@ class BusNameTest(SimpleObjectTester):
             'org.test.foobar'
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             client.NAME_RELEASED,
             'Failed to release name',
@@ -2173,7 +2173,7 @@ class BusNameTest(SimpleObjectTester):
             errbackUnlessAcquired=False,
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             client.NAME_IN_QUEUE,
             'Queue error',
@@ -2183,7 +2183,7 @@ class BusNameTest(SimpleObjectTester):
             'org.test.foobar',
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             [self.client_conn.busName, self.client_conn2.busName],
             'Bus Name Queue differes from expected value'
@@ -2202,7 +2202,7 @@ class BusNameTest(SimpleObjectTester):
         d = self.client_conn.listQueuedBusNameOwners('org.test.foobar')
 
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.NameHasNoOwner: Could not get '
                 'owners of name \'org.test.foobar\': no such name',
                 str(e.value),
@@ -2229,7 +2229,7 @@ class BusNameTest(SimpleObjectTester):
             'org.test.foobar',
         ))
 
-        d.addCallback(lambda r: self.assertEquals(
+        d.addCallback(lambda r: self.assertEqual(
             r,
             os.getuid(),
             'Failed to get connection user id',
@@ -2260,7 +2260,7 @@ class BusNameTest(SimpleObjectTester):
         ))
 
         def on_err(e):
-            self.assertEquals(
+            self.assertEqual(
                 'org.freedesktop.DBus.Error.NameHasNoOwner: Could not get UID '
                 'of name \'org.MISSING_BUS_NAME\': no such name',
                 str(e.value),

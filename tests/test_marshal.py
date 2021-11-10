@@ -1,8 +1,6 @@
 import unittest
 from struct import pack
 
-import six
-
 import txdbus.marshal as m
 
 # dbus_types = [ ('BYTE',        'y',     1),
@@ -28,17 +26,13 @@ import txdbus.marshal as m
 class SigFromPyTests(unittest.TestCase):
 
     def t(self, p, s):
-        self.assertEquals(m.sigFromPy(p), s)
+        self.assertEqual(m.sigFromPy(p), s)
 
     def test_int(self):
         self.t(1, 'i')
 
     def test_bool(self):
         self.t(True, 'b')
-
-    @unittest.skipIf(six.PY3, 'Python 3 uses unified integers: no long type.')
-    def test_long(self):
-        self.t(long(1), 'x')  # noqa: This test is python2-only
 
     def test_float(self):
         self.t(1.0, 'd')
@@ -50,7 +44,7 @@ class SigFromPyTests(unittest.TestCase):
         self.t([1], 'ai')
 
     def test_bytearray(self):
-        self.t(bytearray(six.b('\xAA\xAA')), 'ay')
+        self.t(bytearray(b'\xAA\xAA'), 'ay')
 
     def test_list_multiple_elements_same_type(self):
         self.t([1, 2], 'ai')
@@ -71,12 +65,12 @@ class SigFromPyTests(unittest.TestCase):
         self.t({'foo': 1, 'bar': '2'}, 'a{sv}')
 
     def test_fail(self):
-        class SomeClass(object):
+        class SomeClass:
             pass
         self.assertRaises(m.MarshallingError, m.sigFromPy, SomeClass())
 
     def test_class(self):
-        class V(object):
+        class V:
             dbusSignature = 'ii'
         self.t(V(), 'ii')
 
@@ -84,25 +78,25 @@ class SigFromPyTests(unittest.TestCase):
 class AlignmentTests(unittest.TestCase):
 
     def test_no_padding(self):
-        self.assertEquals(m.pad['y'](1), b'')
+        self.assertEqual(m.pad['y'](1), b'')
 
     def test_2align(self):
-        self.assertEquals(m.pad['n'](1), b'\0')
+        self.assertEqual(m.pad['n'](1), b'\0')
 
     def test_8align(self):
-        self.assertEquals(m.pad['t'](1), b'\0' * 7)
+        self.assertEqual(m.pad['t'](1), b'\0' * 7)
 
     def test_0align(self):
-        self.assertEquals(m.pad['t'](8), b'')
+        self.assertEqual(m.pad['t'](8), b'')
 
     def test_mid_align(self):
-        self.assertEquals(m.pad['t'](4), b'\0' * 4)
+        self.assertEqual(m.pad['t'](4), b'\0' * 4)
 
 
 class SignatureIteratorTests(unittest.TestCase):
 
     def ae(self, sig, expected):
-        self.assertEquals(list(m.genCompleteTypes(sig)), expected)
+        self.assertEqual(list(m.genCompleteTypes(sig)), expected)
 
     def test_one(self):
         self.ae('i', ['i'])
@@ -136,7 +130,7 @@ class TestMarshal(unittest.TestCase):
             var_list = [var_list]
         nbytes, chunks = m.marshal(sig, var_list, 0, little_endian)
         bin_str = b''.join(chunks)
-        self.assertEquals(
+        self.assertEqual(
             nbytes,
             len(expected_encoding),
             "Byte length mismatch. Expected %d. Got %d" % (
@@ -144,7 +138,7 @@ class TestMarshal(unittest.TestCase):
                 nbytes,
             ),
         )
-        self.assertEquals(
+        self.assertEqual(
             bin_str,
             expected_encoding,
             "Binary encoding differs from expected value",
@@ -246,7 +240,7 @@ class TestArrayMarshal(TestMarshal):
     def test_byte_bytearray(self):
         self.check(
             'ay',
-            bytearray(six.b('\xaa\xaa')),
+            bytearray(b'\xaa\xaa'),
             pack('iBB', 2, 170, 170),
         )
 
@@ -307,8 +301,8 @@ class TestVariantMarshal(TestMarshal):
     def test_bytearray(self):
         self.check(
             'v', bytearray(
-                six.b('\xAA\xAA')), pack(
-                'B2siBB', 2, six.b('ay'), 2, 170, 170))
+                b'\xAA\xAA'), pack(
+                'B2siBB', 2, b'ay', 2, 170, 170))
 
 
 # ------------------------------------------------------------------------
@@ -355,7 +349,7 @@ class TestUnmarshal(unittest.TestCase):
 
     def check(self, sig, expected_value, encoding):
         nbytes, value = m.unmarshal(sig, encoding, 0)
-        self.assertEquals(
+        self.assertEqual(
             nbytes,
             len(encoding),
             (
