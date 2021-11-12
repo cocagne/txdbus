@@ -8,3 +8,5 @@ MANIFEST
 .tox
 *.egg*
 .coverage
+.idea
+.idea/*
