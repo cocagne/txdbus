@@ -27,4 +27,4 @@ jobs:
       - run: python -m pip install --upgrade tox
       - # Fake a TTY
         shell: 'script -q -e -c "bash --noprofile --norc -eo pipefail {0}"'
-        run: "python -m tox -- py"
+        run: "python -m tox -e py"
