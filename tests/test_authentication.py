@@ -403,15 +403,6 @@ def delay(arg):
     return d
 
 
-def get_username():
-    uname = os.environ.get('USERNAME', None)
-
-    if uname is None:
-        uname = os.environ.get('LOGNAME', None)
-
-    return uname.encode('ascii')
-
-
 class AuthTestProtocol(protocol.Protocol):
     _buffer = b''
     _sent_null = False
@@ -572,8 +563,8 @@ class AuthTestProtocol(protocol.Protocol):
         def recv1(msg):
             self.send(
                 b'AUTH DBUS_COOKIE_SHA1 '
-                + binascii.hexlify(
-                    get_username()))
+                + binascii.hexlify(getpass.getuser().encode())
+            )
             self.assertTrue(msg.startswith(b'REJECTED'))
             self.gotMessage = recv2
 
@@ -583,7 +574,10 @@ class AuthTestProtocol(protocol.Protocol):
     def test_cancel(self):
         d = self.failOnExit()
 
-        self.send(b'AUTH DBUS_COOKIE_SHA1 ' + binascii.hexlify(get_username()))
+        self.send(
+            b'AUTH DBUS_COOKIE_SHA1 '
+            + binascii.hexlify(getpass.getuser().encode())
+        )
 
         def recv2(msg):
             self.assertTrue(msg.startswith(b'REJECTED'))
