@@ -427,7 +427,7 @@ class AuthTestProtocol(protocol.Protocol):
     def setTest(self, test):
         self.test = test
         self.assertTrue = self.test.assertTrue
-        self.assertEquals = self.test.assertEquals
+        self.assertEqual = self.test.assertEqual
         self.fail = self.test.fail
 
     def succeed(self):
