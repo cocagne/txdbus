@@ -43,7 +43,7 @@ Usage Example
 
 .. code-block:: python
 
-    #!/usr/bin/env python
+    #!/usr/bin/env python3
 
     from twisted.internet import reactor, defer
     from txdbus import error, client

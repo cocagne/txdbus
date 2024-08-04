@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Manually defining the interface and passing it to getRemoteObject()
 # prevents the need for DBus object introspection. The primary
