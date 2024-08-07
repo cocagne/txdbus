@@ -77,7 +77,7 @@ the +org.freedesktop.Notifications+ DBus API
 
 [source,python]
 ----------------------------------------------------------------------
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from twisted.internet import reactor, defer
 from txdbus import error, client
