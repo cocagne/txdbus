@@ -49,12 +49,8 @@ operator will be returned from the +yield+ statement. Alternatively, if the
 operation resulted in an exception, the exception will be re-thrown from the
 +yield+ statement.
 
-The return value of functions decorated with +defer.inlineCallbacks+ is a
-deferred. Due to the nature of generator functions, inline callbacks methods
-cannot use the traditional +return+ keyword to return the result of the 
-asynchronous operation. Instead, they must use +defer.returnValue()+ to
-return the result. If +defer.returnValue()+ is not used, the deferred 
-returned by the decorated function will result in +None+
+The return value of functions decorated with +defer.inlineCallbacks+ is
+propagated using +return+ as usual.
 
 .Inline Callbacks Example
 [source,python]
@@ -67,7 +63,7 @@ def checkIPUsage( ip_addr ):
 
     if ip_addr in ip_txt:
         # True will become the result of the Deferred
-        defer.returnValue( True )
+        return True
     else:
         # Will trigger an errback
         raise Exception('IP NOT FOUND')

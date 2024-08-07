@@ -24,7 +24,7 @@ def call_remote_verbose(obj, method, *args, **kwargs):
     print(f'calling {method}{args}', end=' = ')
     result = yield obj.callRemote(method, *args, **kwargs)
     print(repr(result))
-    defer.returnValue(result)
+    return result
 
 
 @defer.inlineCallbacks
@@ -40,7 +40,7 @@ def main(reactor):
         print('obtained remote object')
     except Exception as e:
         print(f'failed obtaining remote object: {e}')
-        defer.returnValue(None)
+        return None
 
     # Open this source file. Ask remote to read it and return byte count.
     with open(__file__, 'rb') as f:

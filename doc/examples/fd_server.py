@@ -102,7 +102,7 @@ def main(reactor):
     except Exception as e:
         print(f'failed connecting to dbus: {e}')
         reactor.stop()
-        defer.returnValue(None)
+        return None
 
     print('connected to dbus')
     object = FDObject(PATH)
