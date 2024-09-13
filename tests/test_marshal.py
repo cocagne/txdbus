@@ -349,7 +349,7 @@ def check_dict(a, b):
 class TestUnmarshal(unittest.TestCase):
 
     def check(self, sig, expected_value, encoding):
-        nbytes, value = m.unmarshal(sig, encoding, 0)
+        nbytes, value = m.unmarshal(sig, encoding, 0, sys.byteorder == 'little')
         self.assertEqual(
             nbytes,
             len(encoding),
