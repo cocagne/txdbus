@@ -1,3 +1,4 @@
+import sys
 import unittest
 from struct import pack
 
@@ -125,7 +126,7 @@ class SignatureIteratorTests(unittest.TestCase):
 
 class TestMarshal(unittest.TestCase):
 
-    def check(self, sig, var_list, expected_encoding, little_endian=True):
+    def check(self, sig, var_list, expected_encoding, little_endian = sys.byteorder == 'little'):
         if not isinstance(var_list, list):
             var_list = [var_list]
         nbytes, chunks = m.marshal(sig, var_list, 0, little_endian)
@@ -348,7 +349,7 @@ def check_dict(a, b):
 class TestUnmarshal(unittest.TestCase):
 
     def check(self, sig, expected_value, encoding):
-        nbytes, value = m.unmarshal(sig, encoding, 0)
+        nbytes, value = m.unmarshal(sig, encoding, 0, sys.byteorder == 'little')
         self.assertEqual(
             nbytes,
             len(encoding),
